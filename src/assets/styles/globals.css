@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa&family=Golos+Text:wght@400..900&family=Nanum+Gothic:wght@700&family=PT+Sans+Narrow&family=Roboto:wght@100&display=swap');
+body {
+  @apply bg-bg-color text-base text-black;
+  font-family: "Golos Text", sans-serif;
+}
+
+.open-menu {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 0.3s ease;
+}
+.close-menu {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s ease;
+}

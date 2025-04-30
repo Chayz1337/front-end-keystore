@@ -1,0 +1,19 @@
+/* Checkbox.module.scss */
+.checkbox {
+    /* не задавайте display: inline-block; */
+    /* button теперь flex и растягивается на всю ширину */
+  }
+  
+  .box {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+  
+  .active {
+    background: #0d6efd;
+    border-color: #0d6efd;
+  }
+  

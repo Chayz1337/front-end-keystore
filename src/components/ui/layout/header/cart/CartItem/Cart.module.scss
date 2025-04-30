@@ -1,0 +1,43 @@
+.cart {
+  max-height: 250px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-right: 5.1rem;
+  margin-left: -10px; /* Сдвигаем на 10px влево */
+
+  /* Стилизация скроллбара */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+.footer {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  div:first-child {
+    font-weight: 500;
+    color: #ccc;
+  }
+
+  div:nth-child(2) {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #fff;
+  }
+}
