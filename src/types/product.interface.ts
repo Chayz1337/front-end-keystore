@@ -9,7 +9,7 @@ export interface IProduct {
     price: number
     reviews: IReview[]
     images: string[]
-    createdAt: string
+    created_at: string
     game_categories: ICategoryGames[]
 }
 
@@ -22,7 +22,7 @@ export type TypeProducts = {
     games: IProduct[]
 }
 export type TypePaginationProducts = {
-    total: number
+    total?: number
     length: number
     games: IProduct[]
 }

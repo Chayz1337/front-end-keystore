@@ -1,5 +1,5 @@
 import { IOrder } from "./order.intefrace"
-import { IProduct } from "./product.interdace"
+import { IProduct } from "./product.interface";
 
 export interface IUser {
     id: number;

@@ -7,7 +7,7 @@ import Button from "../button/Button";
 import { EnumProductSort } from "@/src/assets/styles/services/product/product.types";
 import { useQuery } from "@tanstack/react-query";
 import { ProductService } from "@/src/assets/styles/services/product/product.service";
-import { TypePaginationProducts } from "@/src/types/product.interdace";
+import { TypePaginationProducts } from "@/src/types/product.interface";
 
 // Тип данных ответа, который содержит информацию о пагинации
 interface ICatalogPagination {

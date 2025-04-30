@@ -1,6 +1,6 @@
 import { useCart } from "@/src/hooks/useCart";
 import { useActions } from "@/src/hooks/user.actions";
-import { IProduct } from "@/src/types/product.interdace";
+import { IProduct } from "@/src/types/product.interface";
 import { FC } from "react";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { RiShoppingCartFill, RiShoppingCartLine } from "react-icons/ri";

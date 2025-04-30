@@ -1,63 +1,59 @@
-
-// explorer.tsx
-'use client' // Убедитесь, что эта директива нужна, если ProductExplorer использует клиентские хуки
-
-import { GetServerSideProps, NextPage } from "next";
-// useRouter и query убраны из импортов, так как они не используются в самом компоненте ExplorerPage
-import { EnumProductSort, TypeProductDataFilters } from "@/src/assets/styles/services/product/product.types";
-import ProductExplorer from "@/src/components/explorer/ProductExplorer";
-import { ProductService } from "@/src/assets/styles/services/product/product.service";
-import { TypePaginationProducts } from "@/src/types/product.interdace";
-import Layout from "@/src/components/ui/layout/Layout";
+// pages/explorer.tsx
+import { GetServerSideProps, NextPage } from 'next';
+import Layout from '@/src/components/ui/layout/Layout';
+import ProductExplorer from '@/src/components/explorer/ProductExplorer';
+import { ProductService } from '@/src/assets/styles/services/product/product.service';
+import { CategoryService } from '@/src/assets/styles/services/category.service';
+import { EnumProductSort, TypeProductDataFilters } from '@/src/assets/styles/services/product/product.types';
+import { TypePaginationProducts } from '@/src/types/product.interface';
 
 interface ExplorerPageProps {
   initialProducts: TypePaginationProducts;
 }
 
-const ExplorerPage: NextPage<ExplorerPageProps> = ({ initialProducts }) => {
-  // const router = useRouter(); // <-- Удалено, не используется в компоненте
-  // const { query } = router; // <-- Удалено, не используется в компоненте
+const ExplorerPage: NextPage<ExplorerPageProps> = ({ initialProducts }) => (
+  <Layout>
+    <ProductExplorer initialProducts={initialProducts} />
+  </Layout>
+);
 
-  return (
-    // Контент страницы обернут в Layout
-    <Layout>
-      <ProductExplorer initialProducts={initialProducts} />
-    </Layout>
-  );
-};
+export const getServerSideProps: GetServerSideProps<ExplorerPageProps> = async ({ query }) => {
+  // 1) Читаем slug из query (он у вас временно лежит в categoryId)
+  const slug = query.categoryId as string | undefined;
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { query } = context; // query используется здесь, в серверной части
+  // 2) Если slug есть — маппим на числовой category_id
+  let numericCategoryId: number | undefined;
+  if (slug) {
+    try {
+      const { data: cat } = await CategoryService.getBySlug(slug);
+      numericCategoryId = cat.category_id;
+    } catch {
+      return { notFound: true };
+    }
+  }
 
-  const filters: TypeProductDataFilters = {
-    sort: (query.sort as EnumProductSort) || null,
+  // 3) Собираем общий объект фильтров как any
+  const rawFilters: any = {
+    sort: (query.sort as EnumProductSort) || undefined,
     searchTerm: (query.searchTerm as string) || undefined,
     page: (query.page as string) || undefined,
     perPage: (query.perPage as string) || undefined,
     ratings: (query.ratings as string) || undefined,
     minPrice: (query.minPrice as string) || undefined,
     maxPrice: (query.maxPrice as string) || undefined,
-    categoryId: (query.categoryId as string) || undefined,
+    // **ВАЖНО** — слать сюда ключ именно `category_id`, а не categoryId
+    category_id: numericCategoryId,
   };
 
-  // Удаляем все поля, где значение null или undefined
-  const cleanedFilters = cleanObject(filters);
+  // 4) Очищаем фильтры от пустых значений
+  const cleanedFilters = Object.fromEntries(
+    Object.entries(rawFilters).filter(([_, v]) => v != null && v !== '')
+  );
 
-  const initialProducts = await ProductService.getAll(cleanedFilters);
+  // 5) Запрашиваем продукты
+  const initialProducts = await ProductService.getAll(cleanedFilters as TypeProductDataFilters);
 
-  return {
-    props: {
-      initialProducts,
-    },
-  };
+  return { props: { initialProducts } };
 };
 
-// Утилита для очистки объекта от null и undefined
-function cleanObject<T extends object>(obj: T): Partial<T> {
-  return Object.fromEntries(
-    Object.entries(obj).filter(([_, value]) => value !== null && value !== undefined)
-  ) as Partial<T>;
-}
-
 export default ExplorerPage;
-

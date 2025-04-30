@@ -28,9 +28,11 @@ const Header: FC = () => {
   </Link>
 )}
 
-                <Link href='/favorites' className="text-while">
-                    <AiOutlineHeart size={37} />
-                </Link>
+{user && (
+  <Link href='/favorites' className="text-while">
+    <AiOutlineHeart size={37} />
+  </Link>
+)}
                 <HeaderCart />
                 <HeaderProfile />
             </div>

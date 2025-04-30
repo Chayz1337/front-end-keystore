@@ -5,18 +5,18 @@ import { useProfile } from "@/src/hooks/useProfile";
 import { NextPageAuth } from "@/src/providers/auth-provider/auth-page.types";
 
 const FavoritesPage: NextPageAuth = () => {
-    const {profile} = useProfile()
+    const {profile} = useProfile();
+    console.log(profile?.favorites);  // Для отладки: проверяем, какие данные получаем
 
     return (
-        <Meta title = 'Favorites'>
+        <Meta title='Favorites'>
             <Layout>
-                <Catalog games = {profile?.favorites || []} title ='Список избранного' />
+                <Catalog games={profile?.favorites || []} title='Список избранного' />
             </Layout>
         </Meta>
-    )
-}
+    );
+};
 
+/*FavoritesPage.isOnlyUser = true*/
 
-/*FavoritesPage.isOnlyUser = true */
-
-export default FavoritesPage
+export default FavoritesPage;

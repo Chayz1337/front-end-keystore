@@ -4,7 +4,7 @@ import Catalog from "@/src/components/ui/catalog/Catalog";
 import Layout from "@/src/components/ui/layout/Layout";
 import Meta from "@/src/components/ui/Meta";
 import { ICategory } from "@/src/types/category.interface";
-import { IProduct } from "@/src/types/product.interdace";
+import { IProduct } from "@/src/types/product.interface";
 import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 
 const CategoryPage: NextPage<{

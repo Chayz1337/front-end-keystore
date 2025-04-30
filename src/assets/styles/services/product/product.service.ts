@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 import { axiosClassic, instanse } from '../../api/api.interceptor';
-import { IProduct, TypePaginationProducts } from '@/src/types/product.interdace';
+import { IProduct, TypePaginationProducts } from '@/src/types/product.interface';
 import { PRODUCTS, TypeProductDataFilters, TypeProductData } from './product.types';
 
 
@@ -57,7 +57,7 @@ export const ProductService = {
 },
     async delete(id: string | number) {
         return instanse <IProduct[]>({
-            url: `${PRODUCTS}/${id}`,
+            url: `admin/${PRODUCTS}/${id}`,
             method: 'DELETE'
         })
     },

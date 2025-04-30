@@ -3,9 +3,10 @@ import Link from "next/link";
 import Meta from "../../ui/Meta";
 import Layout from "../../ui/layout/Layout";
 import CatalogPagination from "../../ui/catalog/CatalogPagination";
-import { TypePaginationProducts } from "@/src/types/product.interdace";
+
 import { useAuth } from "@/src/hooks/useAuth";
 import { useActions } from "@/src/hooks/user.actions";
+import { TypePaginationProducts } from "@/src/types/product.interface";
 
 const Home: FC<TypePaginationProducts> = ({ games, length }) => {
   return (

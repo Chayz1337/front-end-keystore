@@ -1,6 +1,6 @@
 import { ProductService } from "@/src/assets/styles/services/product/product.service";
 import Home from "@/src/components/screeens/home/Home";
-import { TypePaginationProducts, TypeProducts } from "@/src/types/product.interdace";
+import { TypePaginationProducts, TypeProducts } from "@/src/types/product.interface";
 import { GetStaticProps, NextPage } from "next";
 
 const HomePage: NextPage<TypePaginationProducts> = ({ games, length }) => {

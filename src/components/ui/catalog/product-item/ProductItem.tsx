@@ -3,7 +3,7 @@ import Image from "next/image";
 import FavoriteButton from "./FavoriteButton";
 import AddToCartButton from "./AddToCartButton";
 import ProductRating from "./ProductRating";
-import { IProduct } from "@/src/types/product.interdace";
+import { IProduct } from "@/src/types/product.interface";
 import dynamic from "next/dynamic";
 import { ICategoryGames } from "@/src/types/category.interface";
 import { convertPrice } from "@/src/utils/convertPrice";
@@ -11,8 +11,13 @@ import { convertPrice } from "@/src/utils/convertPrice";
 const DynamicFavoriteButton = dynamic(() => import('./FavoriteButton'), { ssr: false });
 
 const ProductItem: FC<{ games: IProduct; isSorting?: boolean }> = ({ games, isSorting = false }) => {
+    // Получаем первый slug категории из массива
     const firstCategorySlug =
-        (games.game_categories && games.game_categories[0]?.category.slug) || 'uncategorized';
+        (games.game_categories && games.game_categories[0]?.category?.slug) || 'uncategorized';
+
+    // Логирование для отладки
+    console.log("Game categories:", games.game_categories);
+    console.log("First category slug:", firstCategorySlug);
 
     return (
         <div className={`flex flex-col ${isSorting ? 'animate-soft-ping' : ''}`}>
@@ -25,7 +30,6 @@ const ProductItem: FC<{ games: IProduct; isSorting?: boolean }> = ({ games, isSo
                             width={300}
                             height={300}
                             className="w-full h-full object-cover block mx-auto"
-
                         />
                     </a>
                 </div>
@@ -36,11 +40,9 @@ const ProductItem: FC<{ games: IProduct; isSorting?: boolean }> = ({ games, isSo
             </div>
             <h3 className="mb-1 font-semibold">{games.name}</h3>
             <a href={`/category/${firstCategorySlug}`} className="text-aqua text-sm mb-2">
-                {games.game_categories && games.game_categories.length > 0 ? (
-                    `Категория: ${games.game_categories[0].category.category_name}`
-                ) : (
-                    'Без категории'
-                )}
+                {games.game_categories && games.game_categories.length > 0
+                    ? `Категория: ${games.game_categories[0].category.slug}`  // Используем slug вместо category_name
+                    : 'Без категории'}
             </a>
             <ProductRating games={games} isText />
             <div className="text-xl font-semibold">Цена {convertPrice(games.price)}</div>

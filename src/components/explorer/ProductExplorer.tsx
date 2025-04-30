@@ -1,6 +1,6 @@
 'use client'
 
-import { TypePaginationProducts } from "@/src/types/product.interdace"
+import { TypePaginationProducts } from "@/src/types/product.interface"
 import { FC, useState } from "react"
 import { useFilters } from "./useFilters"
 import { useQuery } from "@tanstack/react-query"

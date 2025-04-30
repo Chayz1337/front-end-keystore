@@ -1,4 +1,4 @@
-import { IProduct } from "@/src/types/product.interdace";
+import { IProduct } from "@/src/types/product.interface";
 import { FC } from "react";
 import ProductItem from "./product-item/ProductItem";
 import Spinner from "../input/Spinner";
@@ -17,7 +17,7 @@ const Catalog: FC<ICatalog> = ({ games, isLoading, title}) => {
 
     if (isLoading) return <Spinner />
 
-    console.log(games);  // Проверка, что объект 'product' приходит корректно
+
 
     return (
         <section>

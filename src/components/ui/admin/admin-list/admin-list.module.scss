@@ -1,0 +1,30 @@
+.item {
+    @apply mt-4 flex items-center justify-between rounded-lg bg-while px-6 py-4 transition-colors hover:bg-gray shadow-lg hover:shadow-xl;
+  
+    /* Добавляем закругления и красивую тень при наведении */
+    &:hover {
+      background-color: #f1f5f9; /* Цвет при наведении */
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень */
+    }
+  
+    div {
+      @apply py-4;
+      width: 24%;
+      
+      /* Увеличиваем отступы, делаем более современным */
+      &:last-child {
+        @apply justify-end text-right text-black font-semibold;
+        color: #4f83cc; /* Цвет текста */
+      }
+    }
+  }
+  
+  .notFound {
+    @apply py-4 text-center text-lg text-red font-medium;
+  
+    /* Добавляем немного отступов и используем красный цвет для выделения */
+    color: #e53e3e;
+    background-color: #fff5f5; /* Легкий фон для ошибки */
+    border-radius: 8px;
+  }
+  

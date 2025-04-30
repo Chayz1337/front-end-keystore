@@ -4,6 +4,7 @@ export interface ICategoryGames {
 }
 
 export interface ICategory{
+    category_id: number;
     category_name: string
     slug: string
 }

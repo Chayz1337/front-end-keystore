@@ -1,4 +1,4 @@
-import { IProduct } from "@/src/types/product.interdace"
+import { IProduct } from "@/src/types/product.interface"
 
 export type TypeProductData = {
     name: string
@@ -17,7 +17,7 @@ export type TypeProductDataFilters = {
     ratings?: string
     minPrice?: string
     maxPrice?: string
-    categoryId?: string
+    category_id?: number;
 }
 
 export enum EnumProductSort {

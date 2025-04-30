@@ -1,23 +1,19 @@
-
-import { IReview } from '@/src/types/review.intefrace';
 import { instanse } from '../api/api.interceptor';
 
+const STATISTICS = 'admin/statistics';
 
-
-const STATISTICS = 'statistics'
-
-export type TypeStatisticResponse = {
-name: string
-value: number
-} []
+export type StatisticsItem = {
+  id?: number;
+  name: string;
+  value: number | null;
+};
 
 export const StatisticService = {
-    async main() {
-        return instanse <TypeStatisticResponse>({
-            url: `${STATISTICS}/main`,
-            method: 'GET'
-        })
-    },
-}
-
-
+  async main(): Promise<StatisticsItem[]> {
+    const response = await instanse<StatisticsItem[]>({
+      url: `${STATISTICS}/main`,
+      method: 'GET',
+    });
+    return response.data; // теперь без .data
+  },
+};

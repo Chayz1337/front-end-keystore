@@ -1,0 +1,38 @@
+.wrapper {
+    @apply grid grid-cols-4 gap-10;
+  }
+  
+  /* Карточка */
+  .item {
+    @apply rounded-lg bg-while p-6 shadow transition-transform duration-300;
+    transform: translateX(-100%);
+    opacity: 0;
+    animation: slideInLeft 0.7s forwards;
+  }
+  
+  /* Анимация появления */
+  @keyframes slideInLeft {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Наведение — подпрыгивание */
+  .item:hover {
+    transform: translateY(-5px) scale(1.03);
+  }
+  
+  /* Текст */
+  .item div:first-child {
+    @apply text-gray font-medium mb-2;
+  }
+  
+  .item div:last-child {
+    @apply text-lg font-bold;
+  }
+  
