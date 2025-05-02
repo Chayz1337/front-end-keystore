@@ -9,6 +9,8 @@ import { ProductGallery } from './ProductGallery';
 import ProductReviewsCount from './ProductReviewsCount';
 import ProductInformation from './product-information/ProductInformation';
 import SimilarProducts from './SimilarProducts';
+import LeaveReviewForm from './product-reviews/LeaveReviewForm';
+import ProductReviews from './product-reviews/ProductReviews';
 
 interface IProductPage {
   initialProduct: IProduct;
@@ -35,13 +37,14 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
       <div className="grid gap-12 mt-6" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
         <ProductGallery images={game.images} />
         <div className="opacity-80 font-light">
-          <div className="font-semibold mb-1">Description:</div>
+          <div className="font-semibold mb-1">Описание:</div>
           {game.description}
         </div>
         <ProductInformation product={game} />
       </div>
 
       <SimilarProducts similarProducts={similarProducts} />
+      <ProductReviews reviews={game.reviews} productId={game.game_id} />
     </>
   );
 };

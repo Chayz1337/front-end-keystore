@@ -15,9 +15,6 @@ const ProductItem: FC<{ games: IProduct; isSorting?: boolean }> = ({ games, isSo
     const firstCategorySlug =
         (games.game_categories && games.game_categories[0]?.category?.slug) || 'uncategorized';
 
-    // Логирование для отладки
-    console.log("Game categories:", games.game_categories);
-    console.log("First category slug:", firstCategorySlug);
 
     return (
         <div className={`flex flex-col ${isSorting ? 'animate-soft-ping' : ''}`}>

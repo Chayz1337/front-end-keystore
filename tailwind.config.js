@@ -12,6 +12,9 @@ const colors = {
   'bg-color': '#F2F2F5',
   aqua: '#268697',
   red: twColors.red[400],
+    // наши новые статусы
+    'status-completed': 'rgba(220, 250, 220, 0.5)', // светло-зелёный полупрозрачный
+    'status-pending':   'rgba(255, 235, 205, 0.5)', // светло-оранжевый полупрозрачный
 };
 
 module.exports = {

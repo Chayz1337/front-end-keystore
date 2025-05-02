@@ -36,7 +36,7 @@ const AddToCartInline: FC<{ product: IProduct }> = ({ product }) => {
         variant='orange'
         onClick={handleClick}
       >
-        {currentElement ? 'Remove from cart' : 'Add to cart'}
+        {currentElement ? 'Убрать из корзины' : 'Добавить в корзину'}
       </Button>
     </div>
   );

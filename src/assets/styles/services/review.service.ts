@@ -8,7 +8,7 @@ import { IReview } from '@/src/types/review.intefrace';
 const REVIEWS = 'reviews'
 type TypeData = {
     rating: number
-    text: string
+    comment: string
 }
 
 export const ReviewService = {

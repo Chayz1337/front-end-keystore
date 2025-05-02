@@ -61,7 +61,7 @@ const Sidebar: FC = () => {
 
             {!!user && (
                 <button
-                    className="text-white flex items-center ml-10 mb-10 hover:text-primary transition-colors duration-20  text-while"
+                    className="flex items-center ml-10 mb-10 hover:text-primary transition-colors duration-20  text-while"
                     onClick={() => logout()}
                 >
                     <FiLogOut />
