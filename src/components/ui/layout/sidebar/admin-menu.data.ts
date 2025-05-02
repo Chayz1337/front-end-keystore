@@ -15,8 +15,8 @@ export const ADMIN_MENU: IMenuItem[] = [
         href: getAdminUrl('/categories')
     },
     {
-        label: 'Rewiws',
-        href: getAdminUrl('/rewiews')
+        label: 'Reviews',
+        href: getAdminUrl('/reviews')
     },
     {
         label: 'Orders',

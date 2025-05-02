@@ -8,7 +8,7 @@ import Heading from '@/src/components/ui/button/Heading';
 const MyOrders = () => {
   const { data: orders } = useQuery({
     queryKey: ['my orders'],
-    queryFn: () => OrderService.getAll(),
+    queryFn: () => OrderService.getByUserId(),
     select: (response) => response.data,
   });
 

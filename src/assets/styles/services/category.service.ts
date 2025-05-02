@@ -16,7 +16,7 @@ export const CategoryService = {
     },
     async getById(category_id: string | number) {
         return instanse <ICategory[]>({
-            url: `${CATEGORY}/${category_id}`,
+            url: `/admin/${CATEGORY}/${category_id}`,
             method: 'GET'
         })
     },
@@ -34,7 +34,7 @@ export const CategoryService = {
     },
     async update(category_id: string | number, name:string) {
         return instanse <ICategory[]>({
-            url: `${CATEGORY}/${category_id}`,
+            url: `/admin/${CATEGORY}/${category_id}`,
             method: 'PUT',
             data: {name}
         })

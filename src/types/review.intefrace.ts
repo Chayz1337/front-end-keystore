@@ -1,10 +1,19 @@
 import { IUser } from "./user.interface"
 
 export interface IReview {
-    productId: number
-    id: number
-    user: IUser
-    createdAt: string
-    text: string
+    review_id: number
     rating: number
-}
+    comment: string
+    created_at: string
+    user: {
+      user_id: number
+      email: string
+      avatar_path: string
+    }
+    game: {
+      game_id: number
+      name: string
+      slug: string
+    }
+  }
+  

@@ -8,11 +8,11 @@ export enum EnumOrderStatus {
 
 
 export interface IOrder {
-    id: number
-    createdAt: string
+    order_id: number
+    created_at: string
     items: ICartItem[]
     status: EnumOrderStatus
     user: IUser
-    total: number
+    total_amount: number
 
 }

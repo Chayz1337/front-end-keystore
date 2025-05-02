@@ -14,7 +14,7 @@ type TypeData = {
 export const ReviewService = {
     async getAll() {
         return instanse <IReview[]>({
-            url: REVIEWS,
+            url: `/admin/${REVIEWS}`,
             method: 'GET'
         })
     },
