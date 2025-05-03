@@ -1,6 +1,7 @@
 import { ReviewService } from '@/src/assets/styles/services/review.service';
 import { IListItem } from '@/src/components/ui/admin/admin-list/admin-list.interface';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+
 
 export const useAdminReviews = () => {
   const { data = [], isFetching, refetch } = useQuery({
@@ -17,5 +18,12 @@ export const useAdminReviews = () => {
       })),
   });
 
-  return { data, isFetching, refetch };
+    const { mutate } = useMutation({
+      mutationFn: (id: number) => ReviewService.delete(id),
+      onSuccess: () => {
+        refetch();
+      },
+    });
+
+  return { data, isFetching, refetch, mutate };
 };
