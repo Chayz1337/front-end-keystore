@@ -7,9 +7,10 @@ import { ProductService } from '@/src/assets/styles/services/product/product.ser
 import Heading from '@/src/components/ui/button/Heading';
 import { ProductGallery } from './ProductGallery';
 import ProductReviewsCount from './ProductReviewsCount';
-import ProductInformation from './product-information/ProductInformation'; // Импортируем компонент
+import ProductInformation from './product-information/ProductInformation';
 import SimilarProducts from './SimilarProducts';
 import ProductReviews from './product-reviews/ProductReviews';
+import Meta from '@/src/components/ui/Meta';
 
 interface IProductPage {
   initialProduct: IProduct;
@@ -43,6 +44,12 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
 
   return (
     <>
+      {/* Вставляем Meta-компонент с мета-данными для страницы */}
+      <Meta 
+        title={game.name} 
+
+      />
+      
       <Heading classname="mb-1">{game.name}</Heading>
       <ProductReviewsCount product={game} />
 
@@ -53,7 +60,6 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
           {game.description}
         </div>
 
-        {/* Передаем availableKeys в ProductInformation */}
         <ProductInformation product={game} availableKeys={availableKeys} />
       </div>
 

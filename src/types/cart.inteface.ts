@@ -5,4 +5,5 @@ export interface ICartItem{
     games: IProduct
     quantity: number
     price: number
+    
 }

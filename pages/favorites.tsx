@@ -9,7 +9,7 @@ const FavoritesPage: NextPageAuth = () => {
     console.log(profile?.favorites);  // Для отладки: проверяем, какие данные получаем
 
     return (
-        <Meta title='Favorites'>
+        <Meta title='Избранное'>
             <Layout>
                 <Catalog games={profile?.favorites || []} title='Список избранного' />
             </Layout>

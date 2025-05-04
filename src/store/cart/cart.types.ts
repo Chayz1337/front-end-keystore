@@ -1,14 +1,11 @@
 import { ICartItem } from "@/src/types/cart.inteface";
 
 export interface ICartInitialState {
-    items: ICartItem[]
+  items: ICartItem[];
 }
 
-export interface IAddToCartPayload extends 
-Omit<ICartItem, 'id'> {}
-
-
-export interface IChangeQuantityPayload extends
-Pick <ICartItem, 'id'> {
-    type: 'minus' | 'plus'
+export interface IAddToCartPayload extends Omit<ICartItem, 'id'> {}
+export interface IChangeQuantityPayload {
+  id: number;
+  type: 'minus' | 'plus';
 }

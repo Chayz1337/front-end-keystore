@@ -6,6 +6,8 @@ import { ProductService } from '@/src/assets/styles/services/product/product.ser
 import { CategoryService } from '@/src/assets/styles/services/category.service';
 import { EnumProductSort, TypeProductDataFilters } from '@/src/assets/styles/services/product/product.types';
 import { TypePaginationProducts } from '@/src/types/product.interface';
+import Meta from '@/src/components/ui/Meta';
+
 
 interface ExplorerPageProps {
   initialProducts: TypePaginationProducts;
@@ -13,15 +15,16 @@ interface ExplorerPageProps {
 
 const ExplorerPage: NextPage<ExplorerPageProps> = ({ initialProducts }) => (
   <Layout>
+    <Meta 
+      title="Игры по параметрам" 
+    />
     <ProductExplorer initialProducts={initialProducts} />
   </Layout>
 );
 
 export const getServerSideProps: GetServerSideProps<ExplorerPageProps> = async ({ query }) => {
-  // 1) Читаем slug из query (он у вас временно лежит в categoryId)
   const slug = query.categoryId as string | undefined;
 
-  // 2) Если slug есть — маппим на числовой category_id
   let numericCategoryId: number | undefined;
   if (slug) {
     try {
@@ -32,7 +35,6 @@ export const getServerSideProps: GetServerSideProps<ExplorerPageProps> = async (
     }
   }
 
-  // 3) Собираем общий объект фильтров как any
   const rawFilters: any = {
     sort: (query.sort as EnumProductSort) || undefined,
     searchTerm: (query.searchTerm as string) || undefined,
@@ -41,16 +43,13 @@ export const getServerSideProps: GetServerSideProps<ExplorerPageProps> = async (
     ratings: (query.ratings as string) || undefined,
     minPrice: (query.minPrice as string) || undefined,
     maxPrice: (query.maxPrice as string) || undefined,
-    // **ВАЖНО** — слать сюда ключ именно `category_id`, а не categoryId
     category_id: numericCategoryId,
   };
 
-  // 4) Очищаем фильтры от пустых значений
   const cleanedFilters = Object.fromEntries(
     Object.entries(rawFilters).filter(([_, v]) => v != null && v !== '')
   );
 
-  // 5) Запрашиваем продукты
   const initialProducts = await ProductService.getAll(cleanedFilters as TypeProductDataFilters);
 
   return { props: { initialProducts } };

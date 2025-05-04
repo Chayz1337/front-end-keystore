@@ -11,7 +11,6 @@ import { useIsAdminPanel } from "@/src/hooks/useIsAdminPanel";
 import { ADMIN_MENU } from "./admin-menu.data";
 import { convertToMenuItems } from "./convert-to-menu-items";
 
-
 const Sidebar: FC = () => {
     const { data, isLoading } = useQuery({
         queryKey: ['get categories'],
@@ -22,19 +21,17 @@ const Sidebar: FC = () => {
     const { asPath } = useRouter();
     const { user } = useAuth();
     const { logout } = useActions();
-    const { isAdminPanel, pathname } = useIsAdminPanel()
+    const { isAdminPanel, pathname } = useIsAdminPanel();
 
     return (
-        <aside
-            className="bg-secondary flex flex-col justify-between"
-            style={{ height: 'calc(100vh - 91px)' }}
-        >
-            <div>
+        <div className="bg-secondary flex flex-col" style={{ minHeight: '100vh' }}>
+            <div className="flex-grow">
                 {isLoading ? (
-                    <div className="text-white ml-6 mt-4">Loading...</div>
+                    <div className="text-while ml-6 mt-4">Loading...</div>
                 ) : data ? (
                     <>
-                        <div className="text-3xl text-white mt-4 mb-6 ml-6 text-primary font-semibold"> {isAdminPanel ? 'Меню' : 'Категории '}👇
+                        <div className="text-3xl mt-4 mb-6 ml-6 text-primary font-semibold">
+                            {isAdminPanel ? 'Меню' : 'Категории '}👇
                         </div>
                         <ul>
                             {(isAdminPanel ? ADMIN_MENU : convertToMenuItems(data)).map(item => (
@@ -55,20 +52,20 @@ const Sidebar: FC = () => {
                         </ul>
                     </>
                 ) : (
-                    <div className="text-white ml-6 mt-4">Categories not found!</div>
+                    <div className="text-while ml-6 mt-4">Categories not found!</div>
                 )}
             </div>
 
             {!!user && (
                 <button
-                    className="flex items-center ml-10 mb-10 hover:text-primary transition-colors duration-20  text-while"
+                    className="flex items-center ml-10 mb-10 hover:text-primary transition-colors duration-200 text-while mt-auto"
                     onClick={() => logout()}
                 >
                     <FiLogOut />
-                    <span className="ml-2 ">Logout</span>
+                    <span className="ml-2">Logout</span>
                 </button>
             )}
-        </aside>
+        </div>
     );
 };
 

@@ -4,12 +4,14 @@ import Heading from '@/src/components/ui/button/Heading';
 import Layout from '@/src/components/ui/layout/Layout'; // Импортируем Layout
 import { FC } from 'react';
 import { useAdminProducts } from './useAdminProducts';
+import Meta from '@/src/components/ui/Meta';
 
 const Products: FC = () => {
   const { data, isFetching, mutate } = useAdminProducts();
 
   return (
     <Layout>
+      <Meta title = 'Админ панель - Игры' />
       <Heading classname="mb-7">Игры</Heading>
       <AdminList
         isLoading={isFetching} // Исправлено на правильный синтаксис

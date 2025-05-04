@@ -11,7 +11,7 @@ const ReviewItem: FC<{ review: IReview }> = ({ review }) => {
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-while rounded-lg shadow-md p-6">
       <div className="flex items-center mb-2">
         <div className="mr-3">
           <FaUserAlt size={40} className="text-gray-500" />

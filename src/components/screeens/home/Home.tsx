@@ -10,7 +10,7 @@ import { TypePaginationProducts } from "@/src/types/product.interface";
 
 const Home: FC<TypePaginationProducts> = ({ games, length }) => {
   return (
-    <Meta title="Home">
+    <Meta title="Главная">
       <Layout>
         <Link href="/explorer" className="btn btn-white">
           Просмотреть игры

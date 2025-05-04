@@ -4,12 +4,14 @@ import Heading from '@/src/components/ui/button/Heading';
 import Layout from '@/src/components/ui/layout/Layout';
 import { FC } from 'react';
 import { useAdminOrders } from './useAdminOrders';
+import Meta from '@/src/components/ui/Meta';
 
 const Orders: FC = () => {
   const { data, isFetching } = useAdminOrders();
 
   return (
     <Layout>
+      <Meta title = 'Админ панель - Все заказы' />
       <Heading classname="mb-7">Все заказы</Heading>
       <div className="max-h-[70vh] overflow-y-auto pr-2">
         <AdminList
