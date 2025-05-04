@@ -10,6 +10,7 @@ export interface IProduct {
     reviews: IReview[]
     images: string[]
     created_at: string
+    availableKeys: number | null;
     game_categories: ICategoryGames[]
 }
 

@@ -1,15 +1,14 @@
-'use client';
+// src/product/[slug]/Product.tsx
 
-import { FC } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { IProduct } from '@/src/types/product.interface';
 import { ProductService } from '@/src/assets/styles/services/product/product.service';
 import Heading from '@/src/components/ui/button/Heading';
 import { ProductGallery } from './ProductGallery';
 import ProductReviewsCount from './ProductReviewsCount';
-import ProductInformation from './product-information/ProductInformation';
+import ProductInformation from './product-information/ProductInformation'; // Импортируем компонент
 import SimilarProducts from './SimilarProducts';
-import LeaveReviewForm from './product-reviews/LeaveReviewForm';
 import ProductReviews from './product-reviews/ProductReviews';
 
 interface IProductPage {
@@ -29,6 +28,19 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
     enabled: !!slug,
   });
 
+  const [availableKeys, setAvailableKeys] = useState<number | null>(null);
+
+  useEffect(() => {
+    ProductService.getAvailableKeysCount(game.game_id)
+      .then(count => {
+        setAvailableKeys(count);
+      })
+      .catch(err => {
+        console.error('Не удалось загрузить количество ключей:', err);
+        setAvailableKeys(0);
+      });
+  }, [game.game_id]);
+
   return (
     <>
       <Heading classname="mb-1">{game.name}</Heading>
@@ -40,7 +52,9 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
           <div className="font-semibold mb-1">Описание:</div>
           {game.description}
         </div>
-        <ProductInformation product={game} />
+
+        {/* Передаем availableKeys в ProductInformation */}
+        <ProductInformation product={game} availableKeys={availableKeys} />
       </div>
 
       <SimilarProducts similarProducts={similarProducts} />

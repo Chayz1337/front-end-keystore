@@ -25,7 +25,7 @@ const Dashboard: FC = () => {
 
   return (
     <>
-      <Heading classname="mb-8">Dashboard</Heading>
+      <Heading classname="mb-8">Статистика</Heading>
       <div className={styles.wrapper}>
   {data.map((item, index) => {
     const isCurrency = item.name.toLowerCase().includes("прибыль") || item.name.toLowerCase().includes("чек");

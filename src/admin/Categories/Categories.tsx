@@ -10,7 +10,7 @@ const Categories: FC = () => {
 
   return (
     <Layout>
-      <Heading classname="mb-7">Categories</Heading>
+      <Heading classname="mb-7">Категории</Heading>
       <AdminList
         isLoading={isFetching} // Исправлено на правильный синтаксис
         listItems={data} // Передаем данные в компонент AdminList

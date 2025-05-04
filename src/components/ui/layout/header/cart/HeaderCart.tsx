@@ -17,7 +17,6 @@ const Cart: FC = () => {
     const { isShow, setIsShow, ref } = useOutside(false);
     const { items, total } = useCart();
     const { push } = useRouter();
-    console.log('Данные для отправки:', items);  // Логируем данные
     const { mutate, isError, error } = useMutation({
         mutationKey: ['create order'],
         mutationFn: (data: IOrderRequest) => OrderService.createOrder(data),

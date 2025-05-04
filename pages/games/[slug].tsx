@@ -1,7 +1,10 @@
+// src/pages/games/[slug].tsx
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
+import { useEffect, useState } from 'react';
 import { ProductService } from '@/src/assets/styles/services/product/product.service';
 import { IProduct } from '@/src/types/product.interface';
 import Layout from '@/src/components/ui/layout/Layout';
+import ProductInformation from '@/src/product/[slug]/product-information/ProductInformation';
 import Product from '@/src/product/[slug]/Product';
 
 interface Props {
@@ -10,66 +13,63 @@ interface Props {
   slug: string;
 }
 
+const GamePage: NextPage<Props> = ({ initialProduct, similarProducts }) => {
+  return (
+    <Layout>
+      {/* Здесь убираем информацию о наличии ключей */}
+      <Product
+        initialProduct={initialProduct}
+        similarProducts={similarProducts}
+        slug={initialProduct.slug}
+      />
+    </Layout>
+  );
+};
+
 export const getStaticPaths: GetStaticPaths = async () => {
   const { games } = await ProductService.getAll();
-  const paths = games.map((game) => ({
+  const paths = games.map(game => ({
     params: { slug: game.slug },
   }));
 
-  return {
-    paths,
-    fallback: 'blocking',
-  };
+  return { paths, fallback: 'blocking' };
 };
 
 export const getStaticProps: GetStaticProps<Props> = async ({ params }) => {
   const slug = params?.slug as string;
 
-  // 1) Получаем по слагу
+  // Получаем товар по slug
   const bySlug = await ProductService.getBySlug(slug);
-  let initialProduct: IProduct | undefined = Array.isArray(bySlug) ? bySlug[0] : bySlug;
-  if (!initialProduct) {
-    return { notFound: true };
+  let product = Array.isArray(bySlug) ? bySlug[0] : bySlug;
+  if (!product) return { notFound: true };
+
+  // Получаем подробные данные товара (включая отзывы)
+  try {
+    const { data: details } = await ProductService.getById(product.game_id);
+    if (details.length) {
+      product = { ...product, ...details[0] };
+    }
+  } catch {
+    console.warn('Не удалось получить полные данные');
   }
 
-  // 2) Подхватываем полные данные (включая отзывы) по ID
+  // Получаем похожие продукты
+  let similar: IProduct[] = [];
   try {
-    const { data: detailed } = await ProductService.getById(initialProduct.game_id);
-    initialProduct = detailed[0] ?? initialProduct;
-  } catch (err) {
-    console.warn('Не удалось получить полные данные:', err);
-  }
-
-  // 3) Получаем похожие игры
-  let similarProducts: IProduct[] = [];
-  try {
-    const { data } = await ProductService.getSimilar(initialProduct.game_id);
-    similarProducts = data;
-  } catch (err) {
-    console.error('Не удалось загрузить похожие продукты:', err);
-    similarProducts = [];
+    const { data } = await ProductService.getSimilar(product.game_id);
+    similar = data;
+  } catch {
+    console.error('Не удалось загрузить похожие продукты');
   }
 
   return {
     props: {
-      initialProduct,
-      similarProducts,
+      initialProduct: product,
+      similarProducts: similar,
       slug,
     },
     revalidate: 60,
   };
-};
-
-const GamePage: NextPage<Props> = ({ initialProduct, similarProducts, slug }) => {
-  return (
-    <Layout>
-      <Product
-        initialProduct={initialProduct}
-        similarProducts={similarProducts}
-        slug={slug}
-      />
-    </Layout>
-  );
 };
 
 export default GamePage;

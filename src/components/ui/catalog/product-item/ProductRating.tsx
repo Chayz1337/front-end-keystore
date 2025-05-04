@@ -19,6 +19,27 @@ const ProductRating: FC<IProductRating> = ({ games, isText = false }) => {
 
   const [rating] = useState<number>(averageRating);
 
+  // Функция для склонения слова "отзыв"
+  function getReviewWord(count: number): string {
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+      return 'отзывов'; // исключения для 11-14
+    }
+
+    switch (lastDigit) {
+      case 1:
+        return 'отзыв';
+      case 2:
+      case 3:
+      case 4:
+        return 'отзыва';
+      default:
+        return 'отзывов';
+    }
+  }
+
   return (
     <div className="mb-2">
       <span className="mr-1">Рейтинг:</span>
@@ -30,7 +51,11 @@ const ProductRating: FC<IProductRating> = ({ games, isText = false }) => {
         allowFraction
         transition
       />
-      {isText && <span>({reviews.length} отзывов)</span>}
+      {isText && (
+        <span>
+          ({reviews.length} {getReviewWord(reviews.length)})
+        </span>
+      )}
     </div>
   );
 };

@@ -10,7 +10,7 @@ const Products: FC = () => {
 
   return (
     <Layout>
-      <Heading classname="mb-7">Games</Heading>
+      <Heading classname="mb-7">Игры</Heading>
       <AdminList
         isLoading={isFetching} // Исправлено на правильный синтаксис
         listItems={data} // Передаем данные в компонент AdminList

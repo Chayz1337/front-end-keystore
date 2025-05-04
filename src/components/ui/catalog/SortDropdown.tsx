@@ -1,6 +1,14 @@
 import { EnumProductSort } from "@/src/assets/styles/services/product/product.types"
 import { FC, useState } from "react"
 
+// Объект с русскими названиями для сортировки
+const sortLabels: { [key in EnumProductSort]: string } = {
+  [EnumProductSort.HIGH_PRICE]: "по убыванию цены",
+  [EnumProductSort.LOW_PRICE]: "по возрастанию цены",
+  [EnumProductSort.NEWEST]: "по новизне",
+  [EnumProductSort.OLDEST]: "по давности",
+}
+
 interface ISortDropdown {
   sortType: EnumProductSort
   setSortType: (value: EnumProductSort) => void
@@ -10,7 +18,6 @@ const SortDropdown: FC<ISortDropdown> = ({ sortType, setSortType }) => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    // Переключаем wrapper в inline-block, чтобы dropdown был шириной кнопки
     <div className="relative inline-block text-left mb-5 font-bold">
       {/* Кнопка с иконкой стрелочки */}
       <button
@@ -18,11 +25,9 @@ const SortDropdown: FC<ISortDropdown> = ({ sortType, setSortType }) => {
         className="inline-flex items-center justify-between w-full py-2 px-4 bg-white border border-gray-300 rounded-lg shadow-sm
                    transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-50"
       >
-        <span>Sort by: {sortType}</span>
+        <span>Сортировать: {sortLabels[sortType]}</span>
         <svg
-          className={`w-4 h-4 ml-2 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
+          className={`w-4 h-4 ml-2 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -51,7 +56,7 @@ const SortDropdown: FC<ISortDropdown> = ({ sortType, setSortType }) => {
                   }}
                   className="w-full text-left py-2 px-4 hover:bg-gray-100 focus:bg-gray-100 transition-colors duration-150"
                 >
-                  {value}
+                  {sortLabels[value]} {/* Используем русские названия */}
                 </button>
               </li>
             )

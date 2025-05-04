@@ -49,7 +49,7 @@ const ProductExplorer: FC<IProductExplorer> = ({ initialProducts }) => {
                 <Heading>
                     {queryParams.searchTerm
                         ? `Search results for "${queryParams.searchTerm}"`
-                        : 'Explore Products'}
+                        : 'Исследуйте игры'}
                 </Heading>
             </div>
 
@@ -60,7 +60,7 @@ const ProductExplorer: FC<IProductExplorer> = ({ initialProducts }) => {
                     variant="white"
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                 >
-                    {isFilterOpen ? 'Close Filters' : 'Open Filters'}
+                    {isFilterOpen ? 'Закрыть фильтры' : 'Открыть фильтры'}
                 </Button>
 
                 {/* Сортировка справа */}

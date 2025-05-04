@@ -13,7 +13,7 @@ const Home: FC<TypePaginationProducts> = ({ games, length }) => {
     <Meta title="Home">
       <Layout>
         <Link href="/explorer" className="btn btn-white">
-          Browse games
+          Просмотреть игры
         </Link>
         <CatalogPagination title="Игры" data={{ games, length }} />
       </Layout>

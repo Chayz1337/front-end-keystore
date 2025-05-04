@@ -45,7 +45,7 @@ const HeaderProfile: FC = () => {
             href="/my-orders"
             className="bg-while shadow py-2 px-4 block w-full rounded-md hover:text-primary duration-300 transition-colors"
           >
-            My orders
+            Мои заказы
           </Link>
         </div>
       )}

@@ -10,6 +10,7 @@ export const useCart = () => {
     (acc, item) => acc + item.price * item.quantity, 
     0 // Начальное значение для аккумулятора
   );
+  
 
   // Возвращаем элементы корзины и общую сумму
   return { items, total };

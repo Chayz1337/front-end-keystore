@@ -1,16 +1,17 @@
-import Link from 'next/link';
-import { FaLock } from 'react-icons/fa';
-import { FaGamepad, FaClock, FaDownload } from 'react-icons/fa6';
+// src/product/[slug]/product-information/ProductInformation.tsx
+
 import { IProduct } from "@/src/types/product.interface";
 import { convertPrice } from "@/src/utils/convertPrice";
-import FavoriteButton from '@/src/components/ui/catalog/product-item/FavoriteButton';
-import AddToCartInline from './AddToCartInline';
+import { FaClock, FaDownload, FaGamepad, FaLock } from "react-icons/fa";
+import AddToCartInline from "./AddToCartInline";
+import FavoriteButton from "@/src/components/ui/catalog/product-item/FavoriteButton";
 
 interface IProductInformation {
   product: IProduct;
+  availableKeys: number | null;  // Добавляем свойство availableKeys
 }
 
-export default function ProductInformation({ product }: IProductInformation) {
+const ProductInformation: React.FC<IProductInformation> = ({ product, availableKeys }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 relative h-max">
       {/* Цена */}
@@ -41,6 +42,21 @@ export default function ProductInformation({ product }: IProductInformation) {
         Возврат возможен в течение 14 дней
       </div>
 
+      {/* Информация о наличии ключей */}
+      <div className="flex items-center text-sm text-gray-600 mb-4">
+        {availableKeys === null ? (
+          <p className="text-lg text-gray-500">Загрузка наличия ключей…</p>
+        ) : availableKeys > 0 ? (
+          <p className="text-lg font-medium text-gray-800">
+            В наличии ключей: {availableKeys}
+          </p>
+        ) : (
+          <p className="text-lg font-medium text-red-600">
+            Нет доступных ключей
+          </p>
+        )}
+      </div>
+
       {/* Кнопка добавить в корзину */}
       <AddToCartInline product={product} />
 
@@ -55,4 +71,6 @@ export default function ProductInformation({ product }: IProductInformation) {
       </div>
     </div>
   );
-}
+};
+
+export default ProductInformation;

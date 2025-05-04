@@ -10,6 +10,27 @@ interface IProductReviews {
 export default function ProductReviewsCount({ product }: IProductReviews) {
   const reviewsLength = product.reviews?.length || 0;
 
+  // Функция для склонения слова "отзыв"
+  function getReviewWord(count: number): string {
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+      return 'отзывов'; // исключения для 11-14
+    }
+
+    switch (lastDigit) {
+      case 1:
+        return 'отзыв';
+      case 2:
+      case 3:
+      case 4:
+        return 'отзыва';
+      default:
+        return 'отзывов';
+    }
+  }
+
   if (!reviewsLength) return null;
 
   return (
@@ -23,7 +44,7 @@ export default function ProductReviewsCount({ product }: IProductReviews) {
           offset={-50}
           duration={1000}
         >
-          {reviewsLength} Reviews <FiChevronRight className="inline" />
+          {reviewsLength} {getReviewWord(reviewsLength)} <FiChevronRight className="inline" />
         </Link>
       </div>
     </div>
