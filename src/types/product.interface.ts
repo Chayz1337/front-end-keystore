@@ -2,6 +2,7 @@ import { ICategoryGames } from "./category.interface"
 import { IReview } from "./review.intefrace"
 
 export interface IProduct {
+    stock: any
     game_id: number
     name: string
     slug: string

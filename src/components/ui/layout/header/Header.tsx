@@ -20,19 +20,21 @@ const Header: FC = () => {
       className="bg-secondary w-full py-6 px-6 grid"
       style={{ gridTemplateColumns: "1fr 3fr 1.2fr" }}
     >
-      <Link href="/">
-        {isAdminPanel ? (
-          <h2 className="text-3xl text-while font-semibold">Admin Panel</h2>
-        ) : (
-          <Image
-            priority
-            width={300}
-            height={110}
-            src="/images/logo.png"
-            alt="GameShop"
-          />
-        )}
-      </Link>
+        <Link href="/">
+          {isAdminPanel ? (
+            <div className="flex items-center h-full w-full">
+              <h2 className="text-3xl text-while font-semibold pl-10">Admin Panel</h2>
+            </div>
+          ) : (
+            <Image
+              priority
+              width={300}
+              height={110}
+              src="/images/logo.png"
+              alt="GameShop"
+            />
+          )}
+        </Link>
 
       <Search />
 
