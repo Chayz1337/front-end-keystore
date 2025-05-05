@@ -33,9 +33,7 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
 
   useEffect(() => {
     ProductService.getAvailableKeysCount(game.game_id)
-      .then(count => {
-        setAvailableKeys(count);
-      })
+      .then(count => setAvailableKeys(count))
       .catch(err => {
         console.error('Не удалось загрузить количество ключей:', err);
         setAvailableKeys(0);
@@ -44,15 +42,33 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
 
   return (
     <>
-      {/* Вставляем Meta-компонент с мета-данными для страницы */}
-      <Meta 
-        title={game.name} 
+      {/* Meta */}
+      <Meta title={game.name} />
 
-      />
-      
+      {/* Название игры */}
       <Heading classname="mb-1">{game.name}</Heading>
+
+      {/* Категории сразу под названием игры */}
+      {game.game_categories && game.game_categories.length > 0 ? (
+        <div className="text-sm text-black mb-2">
+          <span className="font-semibold">Категории:&nbsp;</span>
+          {game.game_categories.map(({ category }, idx) => (
+            <span key={category.category_id}>
+              <a href={`/category/${category.slug}`} className="text-aqua hover:text-red">
+                {category.category_name}
+              </a>
+              {idx < game.game_categories.length - 1 && ', '}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="text-sm text-black mb-2">Без категории</div>
+      )}
+
+      {/* Количество отзывов */}
       <ProductReviewsCount product={game} />
 
+      {/* Основная сетка */}
       <div className="grid gap-12 mt-6" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
         <ProductGallery images={game.images} />
         <div className="opacity-80 font-light">
