@@ -1,3 +1,5 @@
+// src/product/[slug]/product-reviews/ProductReviews.tsx
+
 import { FC, useState } from 'react';
 import { useAuth } from '@/src/hooks/useAuth';
 import Heading from '@/src/components/ui/button/Heading';
@@ -26,7 +28,8 @@ const ProductReviews: FC<IProductReviews> = ({ reviews, productId }) => {
           <>
             <button 
               className="text-aqua font-semibold text-lg mb-6 block" 
-              onClick={() => setModalOpen(true)}>
+              onClick={() => setModalOpen(true)}
+            >
               Оставить отзыв
             </button>
 
@@ -39,8 +42,8 @@ const ProductReviews: FC<IProductReviews> = ({ reviews, productId }) => {
         {/* Контейнер для прокрутки отзывов */}
         <div className="reviews-container overflow-auto max-h-[700px] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 mt-8 rounded-lg p-4">
           {reviews.map((review) => (
-            <div className="mb-6 last:mb-0"> {/* Добавляем отступ между отзывами */}
-              <ReviewItem key={review.review_id} review={review} />
+            <div key={review.review_id} className="mb-6 last:mb-0">
+              <ReviewItem review={review} />
             </div>
           ))}
         </div>

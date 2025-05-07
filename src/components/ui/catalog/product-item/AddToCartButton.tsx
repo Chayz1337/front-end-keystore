@@ -1,11 +1,8 @@
-// src/components/ui/catalog/product-item/AddToCartButton.tsx
-
 import { useCart } from "@/src/hooks/useCart";
 import { useActions } from "@/src/hooks/user.actions";
 import { IProduct } from "@/src/types/product.interface";
-import { FC, useEffect, useState } from "react";
+import { FC } from "react";
 import { RiShoppingCartFill, RiShoppingCartLine } from "react-icons/ri";
-import { ProductService } from "@/src/assets/styles/services/product/product.service";
 
 interface AddToCartButtonProps {
   games: IProduct;
@@ -15,57 +12,48 @@ const AddToCartButton: FC<AddToCartButtonProps> = ({ games }) => {
   const { addToCart, removeFromCart } = useActions();
   const { items } = useCart();
 
+  // Ищем, есть ли уже этот товар в корзине
   const currentElement = items.find(
     (cartItem) => cartItem.games.game_id === games.game_id
   );
 
-  // Состояние для актуального числа ключей
-  const [availableKeys, setAvailableKeys] = useState<number | null>(null);
+  // Общее количество товара в корзине
+  const currentQuantity = currentElement ? currentElement.quantity : 0;
 
-  // При монтировании и при смене игры — обновляем
-  useEffect(() => {
-    let cancelled = false;
-    ProductService.getAvailableKeysCount(games.game_id)
-      .then((count) => {
-        if (!cancelled) setAvailableKeys(count);
-      })
-      .catch(() => {
-        if (!cancelled) setAvailableKeys(0);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [games.game_id]);
-
-  const addAction = () => {
-    // если availability ещё не подгрузился, считаем, что можно
-    if (availableKeys === null || availableKeys > 0) {
-      addToCart({
-        games,
-        quantity: 1,
-        price: games.price,
-        availableStock: availableKeys ?? 0,
-      });
+  const handleClick = () => {
+    if (currentElement) {
+      // Если уже в корзине — удаляем
+      removeFromCart({ id: currentElement.id });
     } else {
-      alert(`Извините, "${games.name}" временно отсутствует в наличии.`);
+      // Если не в корзине — добавляем, но только если stock > 0
+      const availableStock = games.stock - currentQuantity; // оставшийся доступный сток
+
+      if (availableStock > 0) {
+        addToCart({
+          games,
+          quantity: 1,
+          price: games.price,
+          availableStock: availableStock, // Передаем правильный доступный stock
+        });
+      } else {
+        alert(`Извините, "${games.name}" временно отсутствует в наличии.`);
+      }
     }
   };
+
+  // aria-label и иконка меняются в зависимости от состояния
+  const ariaLabel = currentElement
+    ? "Удалить из корзины"
+    : games.stock > 0
+      ? "Добавить в корзину"
+      : "Нет в наличии";
 
   return (
     <button
       className="text-primary hover:scale-110 transition-transform"
-      onClick={() =>
-        currentElement
-          ? removeFromCart({ id: currentElement.id })
-          : addAction()
-      }
-      aria-label={
-        currentElement
-          ? "Удалить из корзины"
-          : availableKeys === 0
-          ? "Нет в наличии"
-          : "Добавить в корзину"
-      }
+      onClick={handleClick}
+      disabled={games.stock <= 0 && !currentElement}
+      aria-label={ariaLabel}
     >
       {currentElement ? <RiShoppingCartFill /> : <RiShoppingCartLine />}
     </button>

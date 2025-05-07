@@ -1,6 +1,6 @@
 // src/product/[slug]/Product.tsx
 
-import { FC, useEffect, useState } from 'react';
+import { FC } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { IProduct } from '@/src/types/product.interface';
 import { ProductService } from '@/src/assets/styles/services/product/product.service';
@@ -29,17 +29,6 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
     enabled: !!slug,
   });
 
-  const [availableKeys, setAvailableKeys] = useState<number | null>(null);
-
-  useEffect(() => {
-    ProductService.getAvailableKeysCount(game.game_id)
-      .then(count => setAvailableKeys(count))
-      .catch(err => {
-        console.error('Не удалось загрузить количество ключей:', err);
-        setAvailableKeys(0);
-      });
-  }, [game.game_id]);
-
   return (
     <>
       {/* Meta */}
@@ -48,13 +37,16 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
       {/* Название игры */}
       <Heading classname="mb-1">{game.name}</Heading>
 
-      {/* Категории сразу под названием игры */}
+      {/* Категории */}
       {game.game_categories && game.game_categories.length > 0 ? (
         <div className="text-sm text-black mb-2">
           <span className="font-semibold">Категории:&nbsp;</span>
           {game.game_categories.map(({ category }, idx) => (
             <span key={category.category_id}>
-              <a href={`/category/${category.slug}`} className="text-aqua hover:text-red">
+              <a
+                href={`/category/${category.slug}`}
+                className="text-aqua hover:text-red"
+              >
                 {category.category_name}
               </a>
               {idx < game.game_categories.length - 1 && ', '}
@@ -69,14 +61,19 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
       <ProductReviewsCount product={game} />
 
       {/* Основная сетка */}
-      <div className="grid gap-12 mt-6" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+      <div
+        className="grid gap-12 mt-6"
+        style={{ gridTemplateColumns: '1fr 1fr 1fr' }}
+      >
         <ProductGallery images={game.images} />
+
         <div className="opacity-80 font-light">
           <div className="font-semibold mb-1">Описание:</div>
           {game.description}
         </div>
 
-        <ProductInformation product={game} availableKeys={availableKeys} />
+        {/* Передаём только объект game, внутри ProductInformation используется game.stock */}
+        <ProductInformation product={game} />
       </div>
 
       <SimilarProducts similarProducts={similarProducts} />

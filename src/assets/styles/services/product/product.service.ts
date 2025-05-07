@@ -6,6 +6,7 @@ import { axiosClassic, instanse } from '../../api/api.interceptor';
 import { IProduct, TypePaginationProducts } from '@/src/types/product.interface';
 import { PRODUCTS, TypeProductDataFilters, TypeProductData } from './product.types';
 
+
 export const ProductService = {
   async getAll(querryData = {} as TypeProductDataFilters) {
     const { data } = await axiosClassic<TypePaginationProducts>({
@@ -15,6 +16,7 @@ export const ProductService = {
     });
     return data;
   },
+  
 
   async getSimilar(Id: string | number) {
     return axiosClassic<IProduct[]>({
@@ -60,11 +62,13 @@ export const ProductService = {
     return keys.filter(k => !k.is_used).length;
   },
 
-  async create() {
-    return instanse<IProduct[]>({
-      url: PRODUCTS,
-      method: 'POST'
+  async create(data: { name: string, description: string, price: number, images: string[], categories: number[] }) {
+    const response = await instanse<IProduct>({
+      url: `admin/${PRODUCTS}`,
+      method: 'POST',
+      data: data
     });
+    return response.data;
   },
 
   async update(id: string | number, data: TypeProductData) {
@@ -75,10 +79,11 @@ export const ProductService = {
     });
   },
 
-  async delete(id: string | number) {
-    return instanse<IProduct[]>({
+  async delete(id: number) {
+    const response = await instanse({
       url: `admin/${PRODUCTS}/${id}`,
-      method: 'DELETE'
+      method: 'DELETE',
     });
-  },
+    return response.data;
+  }
 };

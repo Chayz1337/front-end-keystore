@@ -9,6 +9,7 @@ export type TypeProductData = {
 }
 export const PRODUCTS = 'games'
 
+
 export type TypeProductDataFilters = {
     sort?: EnumProductSort
     searchTerm?: string

@@ -1,4 +1,3 @@
-// src/components/ui/catalog/product-item/ProductItem.tsx
 import { FC } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -38,26 +37,19 @@ const ProductItem: FC<{ games: IProduct; isSorting?: boolean }> = ({
 
       <h3 className="mb-1 font-semibold">{games.name}</h3>
 
-      {/* Убрали отображение количества отзывов */}
-      {/* <div className="text-sm text-aqua mb-2">
-        {games.reviews?.length
-          ? `${games.reviews.length} отзыв${games.reviews.length === 1 ? "" : "ов"}`
-          : "Нет отзывов"}
-      </div> */}
-
       <ProductRating games={games} isText />
 
       {/* Категории через запятую синего цвета */}
       {games.game_categories?.length ? (
         <div className="text-black text-sm mb-2">
-          Категории: {" "}
+          Категории:{" "}
           {games.game_categories.map(({ category }, i) => (
-            <span key={category.category_id}>
+            <span key={`${category.slug}-${i}`}> {/* Используем slug как уникальный ключ */}
               <a
                 href={`/category/${category.slug}`}
                 className="text-aqua hover:text-red"
               >
-                {category.category_name}
+                {category.slug} {/* Отображаем slug категории */}
               </a>
               {i < games.game_categories.length - 1 && ", "}
             </span>

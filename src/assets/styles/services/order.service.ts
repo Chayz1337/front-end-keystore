@@ -7,7 +7,7 @@ const ORDERS = 'orders';
 export const OrderService = {
   async getAll() {
     return instanse<IOrder[]>({
-      url: ORDERS,
+      url: '/admin/orders/', // Обновите путь
       method: 'GET',
     });
   },

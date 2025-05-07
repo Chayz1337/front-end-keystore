@@ -8,4 +8,5 @@ export interface IListItem {
   export interface IAdminListItem {
     listItem: IListItem
     removeHandler?: () => void
+    onAddKey: (gameId: number) => void; 
   }

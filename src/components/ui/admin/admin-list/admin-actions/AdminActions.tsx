@@ -1,17 +1,24 @@
+// src/components/ui/admin/admin-list/AdminActions.tsx
 import { FC } from 'react'
 import { useRouter } from 'next/router'
-import { RiDeleteRow, RiEdit2Line, RiExternalLinkLine } from 'react-icons/ri'
+import { RiDeleteRow, RiEdit2Line, RiExternalLinkLine, RiKey2Line } from 'react-icons/ri'
 
-import styles from './AdminActions.module.scss' 
+import styles from './AdminActions.module.scss'
 import { IListItem } from '../admin-list.interface'
-
-
 
 interface IAdminActions extends Pick<IListItem, 'editUrl' | 'viewUrl'> {
   removeHandler?: () => void
+  gameId: number
+  onAddKey: () => void
 }
 
-const AdminActions: FC<IAdminActions> = ({ editUrl, viewUrl, removeHandler }) => {
+const AdminActions: FC<IAdminActions> = ({ 
+  editUrl, 
+  viewUrl, 
+  removeHandler, 
+  gameId,
+  onAddKey 
+}) => {
   const { push } = useRouter()
 
   return (
@@ -26,6 +33,9 @@ const AdminActions: FC<IAdminActions> = ({ editUrl, viewUrl, removeHandler }) =>
           <RiEdit2Line />
         </button>
       )}
+      <button onClick={onAddKey} title="Добавить ключи">
+        <RiKey2Line />
+      </button>
       {removeHandler && (
         <button onClick={removeHandler}>
           <RiDeleteRow />

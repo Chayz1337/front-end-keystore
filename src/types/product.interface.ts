@@ -2,7 +2,7 @@ import { ICategoryGames } from "./category.interface"
 import { IReview } from "./review.intefrace"
 
 export interface IProduct {
-    stock: any
+    stock: number // количество доступных ключей
     game_id: number
     name: string
     slug: string
@@ -11,9 +11,8 @@ export interface IProduct {
     reviews: IReview[]
     images: string[]
     created_at: string
-    availableKeys: number | null;
     game_categories: ICategoryGames[]
-}
+  }
 
 export interface IProductDetails {
     games: IProduct
