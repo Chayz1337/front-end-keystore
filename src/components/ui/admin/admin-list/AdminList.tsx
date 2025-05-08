@@ -3,60 +3,55 @@ import { FC, useState } from 'react'
 import AdminListItem from './AdminListItem'
 import styles from './admin-list.module.scss'
 import Loader from '../../Loader'
-import { IListItem } from './admin-list.interface'
-import { useMutation } from '@tanstack/react-query'
-import { gameKeyService } from '@/src/assets/styles/services/product/game-key.service'
+import { IAdminList } from './admin-list.interface'
 import AddKeysModal from '../../modal/AddKeysModal'
+import { gameKeyService } from '@/src/assets/styles/services/product/game-key.service'
 
+const AdminList: FC<IAdminList> = ({
+  isLoading,
+  listItems = [],
+  removeHandler,
+  onEdit,
+  onAddKey
+}) => {
+  const [keysModalOpen, setKeysModalOpen] = useState(false)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
 
-interface IAdminList {
-  isLoading: boolean
-  listItems?: IListItem[]
-  removeHandler?: (id: number) => void
-}
-
-const AdminList: FC<IAdminList> = ({ isLoading, removeHandler, listItems = [] }) => {
-  const [modalOpen, setModalOpen] = useState(false)
-  const [selectedGameId, setSelectedGameId] = useState<number | null>(null)
-
-  const { mutate: addKeys } = useMutation({
-    mutationFn: (data: { gameId: number, keys: string[] }) =>
-      gameKeyService.createGameKeys(data.gameId, data.keys),
-    onSuccess: () => {
-      alert('Ключи успешно добавлены')
-    },
-    onError: () => {
-      alert('Ошибка при добавлении ключей')
-    }
-  })
-
-  const handleAddKey = (gameId: number) => {
-    setSelectedGameId(gameId)
-    setModalOpen(true)
-  }
-
-  const handleModalSubmit = (keys: string[]) => {
-    if (selectedGameId !== null) {
-      addKeys({ gameId: selectedGameId, keys })
+  const handleKeysSubmit = (keys: string[]) => {
+    if (selectedId !== null) {
+      gameKeyService
+        .createGameKeys(selectedId, keys)
+        .then(() => alert('Ключи успешно добавлены'))
+        .catch(() => alert('Ошибка при добавлении ключей'))
+        .finally(() => setKeysModalOpen(false))
     }
   }
 
   return (
     <div className={styles.wrapper}>
       <AddKeysModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleModalSubmit}
+        isOpen={keysModalOpen}
+        onClose={() => setKeysModalOpen(false)}
+        onSubmit={handleKeysSubmit}
       />
+
       {isLoading ? (
         <Loader />
       ) : listItems.length ? (
-        listItems.map((listItem) => (
+        listItems.map((item) => (
           <AdminListItem
-            key={listItem.id}
-            removeHandler={removeHandler ? () => removeHandler(listItem.id) : undefined}
-            listItem={listItem}
-            onAddKey={handleAddKey}
+            key={item.id}
+            listItem={item}
+            removeHandler={removeHandler ? () => removeHandler(item.id) : undefined}
+            onEdit={onEdit ? () => onEdit(item.id) : undefined}
+            onAddKey={
+              onAddKey
+                ? () => {
+                    setSelectedId(item.id)
+                    setKeysModalOpen(true)
+                  }
+                : undefined
+            }
           />
         ))
       ) : (

@@ -12,7 +12,7 @@ const RatingGroup: FC = () => {
   const currentRatings = queryParams.ratings ?? ""
 
   return (
-    <FilterWrapper title="Number of reviews">
+    <FilterWrapper title="Игры с рейтингом">
       {RATING_VARIANTS.map(rating => {
         const ratingStr = rating.toString()
         const isChecked = currentRatings.includes(ratingStr)

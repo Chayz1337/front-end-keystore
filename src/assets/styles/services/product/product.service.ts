@@ -1,4 +1,3 @@
-// src/assets/styles/services/product/product.service.ts
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
@@ -6,84 +5,126 @@ import { axiosClassic, instanse } from '../../api/api.interceptor';
 import { IProduct, TypePaginationProducts } from '@/src/types/product.interface';
 import { PRODUCTS, TypeProductDataFilters, TypeProductData } from './product.types';
 
-
 export const ProductService = {
-  async getAll(querryData = {} as TypeProductDataFilters) {
+  /**
+   * Получает список продуктов с возможностью фильтрации и пагинации.
+   */
+  async getAll(queryData = {} as TypeProductDataFilters): Promise<TypePaginationProducts> {
+    console.log('ProductService.getAll: Запрос с параметрами:', queryData);
     const { data } = await axiosClassic<TypePaginationProducts>({
-      url: PRODUCTS,
+      url: `/${PRODUCTS}`,
       method: 'GET',
-      params: querryData
+      params: queryData,
     });
+    console.log('ProductService.getAll: Получен ответ:', data);
     return data;
   },
-  
 
-  async getSimilar(Id: string | number) {
-    return axiosClassic<IProduct[]>({
-      url: `${PRODUCTS}/similar/${Id}`,
-      method: 'GET',
-    });
-  },
-
-  async getBySlug(slug: string) {
+  /**
+   * Получает список похожих продуктов.
+   */
+  async getSimilar(id: string | number): Promise<IProduct[]> {
     const { data } = await axiosClassic<IProduct[]>({
-      url: `${PRODUCTS}/by-slug/${slug}`,
+      url: `/${PRODUCTS}/similar/${id}`,
       method: 'GET',
     });
     return data;
   },
 
-  async getByCategory(categorySlug: string | number) {
-    return axiosClassic<IProduct[]>({
-      url: `${PRODUCTS}/by-category/${categorySlug}`,
+  /**
+   * Получает продукт по его slug.
+   */
+  async getBySlug(slug: string): Promise<IProduct[]> {
+    const { data } = await axiosClassic<IProduct[]>({
+      url: `/${PRODUCTS}/by-slug/${slug}`,
       method: 'GET',
     });
+    return data;
   },
 
-  async getById(id: string | number) {
-    return instanse<IProduct[]>({
-      url: `${PRODUCTS}/${id}`,
+  /**
+   * Получает список продуктов по slug категории.
+   */
+  async getByCategory(categorySlug: string | number): Promise<IProduct[]> {
+    const { data } = await axiosClassic<IProduct[]>({
+      url: `/${PRODUCTS}/by-category/${categorySlug}`,
       method: 'GET',
     });
+    return data;
   },
 
-  /** Запрашивает защищённый админ-эндпоинт и возвращает массив ключей */
+  /**
+   * Получает продукт по его ID.
+   */
+  async getById(id: string | number): Promise<IProduct> {
+    const { data } = await instanse<IProduct>({
+      url: `/${PRODUCTS}/${id}`,
+      method: 'GET',
+    });
+    return data;
+  },
+
+  /**
+   * Запрашивает защищённый админ-эндпоинт и возвращает массив ключей игры.
+   */
   async getGameKeys(gameId: number): Promise<{ key_id: number; is_used: boolean }[]> {
-    const res = await instanse<{ key_id: number; is_used: boolean }[]>({
-      url: `admin/game-keys/${gameId}`,
+    console.log(`ProductService.getGameKeys: Запрос ключей для игры ID: ${gameId}`);
+    const { data } = await instanse<{ key_id: number; is_used: boolean }[]>({
+      url: `/admin/game-keys/${gameId}`,
       method: 'GET',
     });
-    return res.data;
+    console.log(`ProductService.getGameKeys: Получены ключи для игры ID: ${gameId}`, data);
+    return data;
   },
 
-  /** Подсчитывает число ключей с is_used = false */
+  /**
+   * Подсчитывает число доступных ключей для игры.
+   */
   async getAvailableKeysCount(gameId: number): Promise<number> {
     const keys = await this.getGameKeys(gameId);
-    return keys.filter(k => !k.is_used).length;
+    const availableCount = keys.filter(k => !k.is_used).length;
+    console.log(`ProductService.getAvailableKeysCount: Доступно ключей для игры ID ${gameId}: ${availableCount}`);
+    return availableCount;
   },
 
-  async create(data: { name: string, description: string, price: number, images: string[], categories: number[] }) {
-    const response = await instanse<IProduct>({
-      url: `admin/${PRODUCTS}`,
+  /**
+   * Создает новый продукт (игру) через защищенный эндпоинт.
+   */
+  async create(data: TypeProductData): Promise<IProduct> {
+    console.log('ProductService.create: Отправка данных:', data);
+    const { data: created } = await instanse<IProduct>({
+      url: `/admin/${PRODUCTS}`,
       method: 'POST',
-      data: data
+      data,
     });
-    return response.data;
+    console.log('ProductService.create: Получен ответ:', created);
+    return created;
   },
 
-  async update(id: string | number, data: TypeProductData) {
-    return instanse<IProduct[]>({
-      url: `${PRODUCTS}/${id}`,
-      method: 'PUT',
-      data
+  /**
+   * Обновляет существующий продукт (игру) через защищенный эндпоинт.
+   */
+  async update(id: string | number, data: TypeProductData): Promise<IProduct> {
+    console.log(`ProductService.update: Отправка данных для ID: ${id}:`, data);
+    const { data: updated } = await instanse<IProduct>({
+      url: `/admin/${PRODUCTS}/${id}`,
+      method: 'PATCH',
+      data,
     });
+    console.log(`ProductService.update: Получен ответ для ID: ${id}:`, updated);
+    return updated;
   },
 
-  async delete(id: number) {
-    const response = await instanse({
-      url: `admin/${PRODUCTS}/${id}`,
+  /**
+   * Удаляет продукт (игру) через защищенный эндпоинт.
+   */
+  async delete(id: number): Promise<any> {
+    console.log(`ProductService.delete: Запрос на удаление ID: ${id}`);
+    const { data } = await instanse({
+      url: `/admin/${PRODUCTS}/${id}`,
       method: 'DELETE',
     });
-    return response.data;
-  }
+    console.log(`ProductService.delete: Ответ для ID: ${id}:`, data);
+    return data;
+  },
 };

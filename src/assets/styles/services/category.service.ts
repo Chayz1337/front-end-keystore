@@ -26,22 +26,24 @@ export const CategoryService = {
             method: 'GET'
         })
     },
-    async create() {
-        return instanse <ICategory[]>({
-            url: CATEGORY,
-            method: 'POST'
-        })
-    },
-    async update(category_id: string | number, name:string) {
-        return instanse <ICategory[]>({
-            url: `/admin/${CATEGORY}/${category_id}`,
-            method: 'PUT',
-            data: {name}
-        })
-    },
+    async create(name: string) {
+        return instanse<ICategory>({
+          url: `/admin/${CATEGORY}`,
+          method: 'POST',
+          data: { category_name: name },
+        });
+      },
+    async update(categoryId: number, name: string) {
+        // отправляем именно category_name
+        return instanse<ICategory>({
+          url: `/admin/${CATEGORY}/${categoryId}`,
+          method: 'PUT',
+          data: { category_name: name },
+        });
+      },
     async delete(category_id: string | number) {
         return instanse <ICategory[]>({
-            url: `${CATEGORY}/${category_id}`,
+            url: `/admin/${CATEGORY}/${category_id}`,
             method: 'DELETE'
         })
     },

@@ -1,10 +1,8 @@
 // src/pages/games/[slug].tsx
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next';
-import { useEffect, useState } from 'react';
 import { ProductService } from '@/src/assets/styles/services/product/product.service';
 import { IProduct } from '@/src/types/product.interface';
 import Layout from '@/src/components/ui/layout/Layout';
-import ProductInformation from '@/src/product/[slug]/product-information/ProductInformation';
 import Product from '@/src/product/[slug]/Product';
 
 interface Props {
@@ -16,7 +14,6 @@ interface Props {
 const GamePage: NextPage<Props> = ({ initialProduct, similarProducts }) => {
   return (
     <Layout>
-      {/* Здесь убираем информацию о наличии ключей */}
       <Product
         initialProduct={initialProduct}
         similarProducts={similarProducts}
@@ -27,7 +24,7 @@ const GamePage: NextPage<Props> = ({ initialProduct, similarProducts }) => {
 };
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const { games } = await ProductService.getAll();
+  const { games } = await ProductService.getAll(); // допустим, этот метод возвращает { games: IProduct[] }
   const paths = games.map(game => ({
     params: { slug: game.slug },
   }));
@@ -43,11 +40,12 @@ export const getStaticProps: GetStaticProps<Props> = async ({ params }) => {
   let product = Array.isArray(bySlug) ? bySlug[0] : bySlug;
   if (!product) return { notFound: true };
 
-  // Получаем подробные данные товара (включая отзывы)
+  // Получаем подробные данные по ID
   try {
-    const { data: details } = await ProductService.getById(product.game_id);
-    if (details.length) {
-      product = { ...product, ...details[0] };
+    const details = await ProductService.getById(product.game_id); // теперь это IProduct или IProduct[]
+    const detailed = Array.isArray(details) ? details[0] : details;
+    if (detailed) {
+      product = { ...product, ...detailed };
     }
   } catch {
     console.warn('Не удалось получить полные данные');
@@ -56,8 +54,7 @@ export const getStaticProps: GetStaticProps<Props> = async ({ params }) => {
   // Получаем похожие продукты
   let similar: IProduct[] = [];
   try {
-    const { data } = await ProductService.getSimilar(product.game_id);
-    similar = data;
+    similar = await ProductService.getSimilar(product.game_id); // сразу массив
   } catch {
     console.error('Не удалось загрузить похожие продукты');
   }

@@ -5,7 +5,8 @@ export type TypeProductData = {
     price: number
     description?: string
     images: string[]
-    category_id: number
+   // category_id: number
+    categories: number[];
 }
 export const PRODUCTS = 'games'
 

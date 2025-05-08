@@ -26,7 +26,7 @@ const CategoryGroup: FC = () => {
   }
 
   return (
-    <FilterWrapper title="Category">
+    <FilterWrapper title="Категории">
       {data.map(category => {
         // приводим оба к строке, чтобы сравнение прошло без ошибок типов
         const isChecked =

@@ -6,7 +6,7 @@ import FilterWrapper from "../FilterWrapper"
 const PriceGroup: FC = () => {
     const {queryParams, updateQueryParams} =useFilters()
 
-    return (<FilterWrapper title='Price from/to'>
+    return (<FilterWrapper title='Цена от / до'>
         <Range max = {2000}  fromInitialValue={queryParams.minPrice}
          toInitialValue={queryParams.maxPrice}
           OnChangeFromValue = {(value) => updateQueryParams('minPrice', value)} 
