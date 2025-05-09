@@ -11,7 +11,7 @@ interface IProductInformation {
 
 const ProductInformation: React.FC<IProductInformation> = ({ product }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 relative h-max">
+    <div className="bg-while rounded-lg shadow-md p-6 relative h-max">
       {/* Цена */}
       <div className="text-3xl font-semibold mb-2">
         {convertPrice(product.price)}

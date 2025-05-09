@@ -55,16 +55,6 @@ const Sidebar: FC = () => {
                     <div className="text-while ml-6 mt-4">Categories not found!</div>
                 )}
             </div>
-
-            {!!user && (
-                <button
-                    className="flex items-center ml-10 mb-10 hover:text-primary transition-colors duration-200 text-while mt-auto"
-                    onClick={() => logout()}
-                >
-                    <FiLogOut />
-                    <span className="ml-2">Logout</span>
-                </button>
-            )}
         </div>
     );
 };

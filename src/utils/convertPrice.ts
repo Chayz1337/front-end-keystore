@@ -1,6 +1,8 @@
-export const convertPrice = (price:number) => {
-    return price.toLocaleString(`en-US`, {
-        style: `currency`,
-        currency: `USD`,
-    });
+export function convertPrice(price: number): string {
+  return price.toLocaleString('ru-RU', {
+    style: 'currency',
+    currency: 'RUB',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
 }

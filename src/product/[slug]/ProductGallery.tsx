@@ -17,8 +17,8 @@ export function ProductGallery({ images}: IProductGallery ) {
       <Image
   src={images[activeIndex]}
   alt="Product Image"
-  width={500}
-  height={500}
+  width={700}
+  height={700}
   className="rounded-lg overflow-hidden object-cover"
   priority
   draggable={false}

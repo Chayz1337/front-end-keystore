@@ -1,18 +1,23 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useQuery } from '@tanstack/react-query';
+import { useDispatch } from 'react-redux';
 import { OrderService } from '@/src/assets/styles/services/order.service';
 import { convertPrice } from '@/src/utils/convertPrice';
 import Loader from '@/src/components/ui/Loader';
 import Meta from '@/src/components/ui/Meta';
 import Layout from '@/src/components/ui/layout/Layout';
 import Heading from '@/src/components/ui/button/Heading';
+import { reset } from '@/src/store/cart/cart.slice'; // ⬅️ Импорт очистки корзины
+import { EnumOrderStatus } from '@/src/types/order.intefrace';
+
 
 const PaymentSuccess: FC = () => {
-  const { orderId } = useRouter().query;  // Получаем orderId из URL
+  const { orderId } = useRouter().query;
   const [orderData, setOrderData] = useState<any | null>(null);
+  const dispatch = useDispatch();
+  const cleared = useRef(false); // ⬅️ Чтобы не очищать корзину несколько раз
 
-  // Загружаем все заказы для пользователя
   const { data: orders, isLoading, isError } = useQuery({
     queryKey: ['my orders'],
     queryFn: () => OrderService.getByUserId(),
@@ -20,26 +25,29 @@ const PaymentSuccess: FC = () => {
   });
 
   useEffect(() => {
-    if (orders && orderId) {
+    if (orders && orderId && !cleared.current) {
       const order = orders.find((order: any) => order.order_id === Number(orderId));
-      setOrderData(order);  // Если заказ найден, сохраняем его в стейт
-    }
-  }, [orders, orderId]);
+      setOrderData(order);
 
-  // Если заказ не найден или произошла ошибка
+      // ⬅️ Очищаем корзину только если заказ завершён
+      if (order?.status === EnumOrderStatus.COMPLETED) {
+        dispatch(reset());
+        cleared.current = true;
+      }
+    }
+  }, [orders, orderId, dispatch]);
+
   if (isError) return <div>Ошибка загрузки заказов!</div>;
   if (isLoading) return <Loader />;
-
   if (!orderData) return <div>Заказ не найден или произошла ошибка.</div>;
 
-  // Статус заказа
-  const status = orderData.status.toUpperCase();
-  const bgClass =
-    status === 'COMPLETED'
-      ? 'bg-status-completed'
-      : status === 'PENDING'
-      ? 'bg-status-pending'
-      : '';
+const status = orderData.status;
+const bgClass =
+  status === EnumOrderStatus.COMPLETED
+    ? 'bg-status-completed'
+    : status === EnumOrderStatus.PENDING
+    ? 'bg-status-pending'
+    : '';
 
   return (
     <Meta title="Оплата успешна">
@@ -49,9 +57,7 @@ const PaymentSuccess: FC = () => {
           <div className="flex flex-col sm:flex-row sm:gap-10 gap-2">
             <span>Заказ #{orderData.order_id}</span>
             <span>Статус: {orderData.status}</span>
-            <span>
-              Дата: {new Date(orderData.created_at).toLocaleDateString()}
-            </span>
+            <span>Дата: {new Date(orderData.created_at).toLocaleDateString()}</span>
             <span>Итого: {convertPrice(Number(orderData.total_amount))}</span>
           </div>
 
@@ -66,7 +72,11 @@ const PaymentSuccess: FC = () => {
                   <ul className="space-y-2">
                     {keyObj.activation_keys.map((key: string, i: number) => (
                       <li key={i} className="flex items-center gap-2">
-                        <span className="px-2 py-1 bg-gray-100 border border-gray-300 rounded-md font-mono text-sm break-all max-w-[300px]">
+                        <span
+                          className="px-2 py-1 bg-gray-100 border border-gray-300 rounded-md font-mono text-sm break-all max-w-[300px] cursor-pointer"
+                          onClick={() => navigator.clipboard.writeText(key)}
+                          title="Нажмите для копирования"
+                        >
                           {key}
                         </span>
                       </li>

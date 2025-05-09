@@ -68,7 +68,7 @@ const LeaveReviewForm: FC<{ productId: number }> = ({ productId }) => {
             <textarea
               {...formRegister('comment', { required: 'Text is required' })}
               placeholder="Поделитесь мнением об игре..."
-              className="rounded-md border border-gray/70 bg-white p-3 block mt-4 resize-none w-full text-sm min-h-[110px]"
+              className="rounded-md border border-gray/70 bg-while p-3 block mt-4 resize-none w-full text-sm min-h-[110px]"
             />
 
             {Object.values(errors).length > 0 && (

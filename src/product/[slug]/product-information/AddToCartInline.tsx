@@ -3,16 +3,31 @@ import { useActions } from '@/src/hooks/user.actions';
 import { useCart } from '@/src/hooks/useCart';
 import Button from '@/src/components/ui/button/Button';
 import { IProduct } from '@/src/types/product.interface';
+import { useAuth } from '@/src/hooks/useAuth'; // добавляем хук авторизации
 
 interface AddToCartInlineProps {
   product: IProduct;
 }
 
 const AddToCartInline: FC<AddToCartInlineProps> = ({ product }) => {
+  const { user } = useAuth(); // получаем текущего пользователя
   const { addToCart, removeFromCart } = useActions();
   const { items } = useCart();
 
-  // Проверяем, есть ли товар в корзине сейчас
+  // Если пользователь не авторизован — просто отображаем кнопку с сообщением
+  if (!user) {
+    return (
+      <Button
+        disabled
+        variant="orange"
+        className="mt-1 w-full py-2 px-4 rounded font-semibold opacity-50 cursor-not-allowed bg-gray-400"
+      >
+        Войдите в профиль, чтобы добавить в корзину
+      </Button>
+    );
+  }
+
+  // Проверяем, есть ли товар в корзине
   const currentCartItem = items.find(
     cartItem => cartItem.games.game_id === product.game_id
   );
@@ -20,10 +35,8 @@ const AddToCartInline: FC<AddToCartInlineProps> = ({ product }) => {
 
   const handleClick = () => {
     if (isInCart && currentCartItem) {
-      // Удаляем из корзины
       removeFromCart({ id: currentCartItem.id });
     } else {
-      // Добавляем в корзину, только если есть stock > 0
       if (product.stock > 0) {
         addToCart({
           games: product,
@@ -37,10 +50,8 @@ const AddToCartInline: FC<AddToCartInlineProps> = ({ product }) => {
     }
   };
 
-  // Блокируем кнопку только когда stock = 0 и товар ещё не в корзине
   const isDisabled = !isInCart && product.stock <= 0;
 
-  // Текст на кнопке:
   const buttonText = isInCart
     ? 'Удалить из корзины'
     : product.stock > 0

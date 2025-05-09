@@ -14,7 +14,7 @@ const FavoritesPage: NextPageAuth = () => {
   return (
     <Meta title="Избранное">
       <Layout>
-        <Catalog
+        <Catalog 
           games={favorites}
           title="Список избранного"
         />

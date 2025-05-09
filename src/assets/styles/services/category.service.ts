@@ -32,6 +32,7 @@ export const CategoryService = {
           method: 'POST',
           data: { category_name: name },
         });
+        
       },
     async update(categoryId: number, name: string) {
         // отправляем именно category_name

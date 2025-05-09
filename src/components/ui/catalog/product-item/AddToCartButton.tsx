@@ -1,39 +1,39 @@
+// AddToCartButton.tsx
 import { useCart } from "@/src/hooks/useCart";
 import { useActions } from "@/src/hooks/user.actions";
 import { IProduct } from "@/src/types/product.interface";
 import { FC } from "react";
 import { RiShoppingCartFill, RiShoppingCartLine } from "react-icons/ri";
+import { useAuth } from "@/src/hooks/useAuth";
 
 interface AddToCartButtonProps {
   games: IProduct;
 }
 
 const AddToCartButton: FC<AddToCartButtonProps> = ({ games }) => {
+  const { user } = useAuth();
   const { addToCart, removeFromCart } = useActions();
   const { items } = useCart();
 
-  // Ищем, есть ли уже этот товар в корзине
-  const currentElement = items.find(
+  if (!user) return null;
+
+  const currentElementInCart = items.find(
     (cartItem) => cartItem.games.game_id === games.game_id
   );
 
-  // Общее количество товара в корзине
-  const currentQuantity = currentElement ? currentElement.quantity : 0;
+  const isInCart = !!currentElementInCart;
+  const isOutOfStock = games.stock <= 0;
 
   const handleClick = () => {
-    if (currentElement) {
-      // Если уже в корзине — удаляем
-      removeFromCart({ id: currentElement.id });
+    if (isInCart) {
+      removeFromCart({ id: currentElementInCart.id });
     } else {
-      // Если не в корзине — добавляем, но только если stock > 0
-      const availableStock = games.stock - currentQuantity; // оставшийся доступный сток
-
-      if (availableStock > 0) {
+      if (!isOutOfStock) {
         addToCart({
           games,
           quantity: 1,
           price: games.price,
-          availableStock: availableStock, // Передаем правильный доступный stock
+          availableStock: games.stock,
         });
       } else {
         alert(`Извините, "${games.name}" временно отсутствует в наличии.`);
@@ -41,21 +41,26 @@ const AddToCartButton: FC<AddToCartButtonProps> = ({ games }) => {
     }
   };
 
-  // aria-label и иконка меняются в зависимости от состояния
-  const ariaLabel = currentElement
-    ? "Удалить из корзины"
-    : games.stock > 0
-      ? "Добавить в корзину"
-      : "Нет в наличии";
+  let iconColorClass = 'text-gray-600 hover:text-primary'; // Темно-серый по умолчанию, оранжевый при наведении
+  let titleText = "Добавить в корзину";
+
+  if (isInCart) {
+    iconColorClass = 'text-primary hover:text-primary'; // Оранжевый, если в корзине
+    titleText = "Удалить из корзины";
+  } else if (isOutOfStock) {
+    iconColorClass = 'text-gray-400 cursor-not-allowed'; // Светло-серый, если нет в наличии
+    titleText = "Нет в наличии";
+  }
 
   return (
     <button
-      className="text-primary hover:scale-110 transition-transform"
+      className={`transition-all duration-200 ease-in-out hover:scale-110 focus-visible:outline-none transform active:scale-100 ${iconColorClass}`}
       onClick={handleClick}
-      disabled={games.stock <= 0 && !currentElement}
-      aria-label={ariaLabel}
+      disabled={isOutOfStock && !isInCart}
+      aria-label={titleText}
+      title={titleText}
     >
-      {currentElement ? <RiShoppingCartFill /> : <RiShoppingCartLine />}
+      {isInCart ? <RiShoppingCartFill size={20} /> : <RiShoppingCartLine size={20} />}
     </button>
   );
 };

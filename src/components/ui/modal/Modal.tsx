@@ -1,7 +1,10 @@
-import { FC, PropsWithChildren, useRef, useEffect, MouseEvent as ReactMouseEvent } from 'react'; // Используем ReactMouseEvent для onClick
+// src/components/ui/modal/Modal.tsx
+'use client'; // Если используется в Next.js App Router
+
+import { FC, PropsWithChildren, useRef, useEffect, useState, MouseEvent as ReactMouseEvent } from 'react';
 import ReactDOM from 'react-dom';
-import { RiCloseFill } from 'react-icons/ri'; // Убедись, что react-icons установлены
-import styles from './Modal.module.scss';
+import { RiCloseFill } from 'react-icons/ri';
+import styles from './Modal.module.scss'; // Твои стили с анимацией из Modal.module.scss
 
 interface IModal {
   isOpen: boolean;
@@ -9,90 +12,112 @@ interface IModal {
 }
 
 const Modal: FC<PropsWithChildren<IModal>> = ({ children, isOpen, closeModal }) => {
-  const modalRootRef = useRef<HTMLElement | null>(null); // Переименовал для ясности, что это ref на DOM-элемент
-  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [portalNode, setPortalNode] = useState<HTMLElement | null>(null);
+  const contentRef = useRef<HTMLDivElement | null>(null); // Ref для div.window
 
+  // Устанавливаем узел для портала один раз после монтирования компонента
   useEffect(() => {
-    // Убедимся, что #modal существует в DOM
+    console.log('[Modal.tsx] Component did mount, attempting to find portal root.');
     const modalElement = document.getElementById('modal');
     if (modalElement) {
-      modalRootRef.current = modalElement;
+      console.log('[Modal.tsx] Found #modal element for portal.');
+      setPortalNode(modalElement);
     } else {
-      // Если #modal нет, можно его создать и добавить в body,
-      // или вывести ошибку, если он должен быть создан заранее.
-      console.warn('Элемент с ID "modal" не найден в DOM. Модальное окно может не работать корректно.');
-      // Как запасной вариант, можно рендерить в document.body, если #modal не найден.
-      // modalRootRef.current = document.body;
+      console.warn('[Modal.tsx] Элемент с ID "modal" не найден в DOM. Используется document.body для портала.');
+      setPortalNode(document.body); // Запасной вариант
     }
-  }, []);
+  }, []); // Пустой массив зависимостей, выполняется один раз
 
+  // Эффект для обработки кликов вне модалки и Escape, а также блокировки скролла
   useEffect(() => {
-    // Обработчик для document, чтобы отлавливать клики где угодно
-    const handleGlobalClick = (event: globalThis.MouseEvent) => { // Используем globalThis.MouseEvent для document
-      if (!isOpen || !contentRef.current) return;
+    console.log('[Modal.tsx] useEffect for isOpen changed. isOpen:', isOpen);
+    if (!isOpen) {
+      document.body.style.overflow = ''; // Восстанавливаем прокрутку, если модалка закрыта
+      return;
+    }
+
+    const handleGlobalClick = (event: globalThis.MouseEvent) => {
+      if (!contentRef.current) return;
 
       const target = event.target as HTMLElement;
 
-      // 1. Клик внутри контента модалки? Если да, ничего не делаем.
+      // Клик внутри контента модалки?
       if (contentRef.current.contains(target)) {
+        // console.log('[Modal.tsx] Click inside modal content.');
         return;
       }
 
-      // 2. Клик внутри меню react-select?
-      //    react-select рендерит меню в портале, обычно в body.
-      //    Мы ищем элементы с классами, которые использует react-select для своего меню.
-      //    Если classNamePrefix="react-select" (по умолчанию или явно указан),
-      //    то меню будет иметь класс react-select__menu, а опции react-select__option.
+      // Клик внутри портальных элементов (например, react-select)
       let currentElement: HTMLElement | null = target;
-      let clickedInsideSelectMenu = false;
+      let clickedInsidePortalElement = false;
       while (currentElement) {
         if (currentElement.classList &&
-            (currentElement.classList.contains('react-select__menu') || // Само меню
-             currentElement.classList.contains('react-select__menu-list') || // Список внутри меню
-             currentElement.classList.contains('react-select__option') || // Опция меню
-             currentElement.classList.contains('react-select__control') // Если клик по самому селекту, тоже не закрывать
+            (currentElement.classList.contains('react-select__menu') ||
+             currentElement.classList.contains('react-select__menu-list') ||
+             currentElement.classList.contains('react-select__option') ||
+             currentElement.classList.contains('react-select__control') 
             )
            ) {
-          clickedInsideSelectMenu = true;
+          // console.log('[Modal.tsx] Click inside react-select.');
+          clickedInsidePortalElement = true;
           break;
         }
         currentElement = currentElement.parentElement;
       }
 
-      if (clickedInsideSelectMenu) {
-        return; // Клик внутри react-select, ничего не делаем.
+      if (clickedInsidePortalElement) {
+        return;
       }
       
-      // Если клик был не внутри контента модалки и не внутри меню react-select,
-      // то закрываем модальное окно.
+      // console.log('[Modal.tsx] Click outside modal content and known portals. Closing modal.');
       closeModal();
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleGlobalClick);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleGlobalClick);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        // console.log('[Modal.tsx] Escape key pressed. Closing modal.');
+        closeModal();
+      }
     };
-  }, [isOpen, closeModal]); // Зависимости contentRef.current не нужны, т.к. он стабилен после первого рендера
 
-  // Если модалка не открыта или корневой элемент для портала не найден, ничего не рендерим
-  if (!isOpen || !modalRootRef.current) {
+    document.addEventListener('mousedown', handleGlobalClick);
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden'; // Блокируем прокрутку фона при открытой модалке
+
+    // Очистка слушателей и стилей
+    return () => {
+      // console.log('[Modal.tsx] Cleaning up event listeners and body overflow.');
+      document.removeEventListener('mousedown', handleGlobalClick);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, closeModal]); // Перезапускаем эффект при изменении isOpen или closeModal
+
+  console.log('[Modal.tsx] Render check: isOpen =', isOpen, 'portalNode =', !!portalNode);
+
+  // Не рендерим, если модалка не открыта или узел портала еще не установлен
+  if (!isOpen || !portalNode) {
+    if (!isOpen) console.log('[Modal.tsx] Not rendering: isOpen is false.');
+    if (!portalNode) console.log('[Modal.tsx] Not rendering: portalNode is null.');
     return null;
   }
 
+  console.log('[Modal.tsx] Rendering portal...');
   return ReactDOM.createPortal(
-    // Убираем onClick с оверлея, т.к. логика теперь в handleGlobalClick
-    <div className={styles.overlay} /* onClick НЕ НУЖЕН ЗДЕСЬ */> 
-      <div className={styles.window} ref={contentRef}>
-        <button onClick={closeModal} className={styles.closeButton} aria-label="Закрыть модальное окно">
-          <RiCloseFill size={24} />
+    <div className={styles.overlay}> 
+      <div className={styles.window} ref={contentRef}> {/* contentRef на .window */}
+        <button 
+            onClick={closeModal} 
+            className={styles.closeButton} 
+            aria-label="Закрыть модальное окно"
+            type="button" // Важно для кнопок не в форме
+        >
+          <RiCloseFill size={20} /> {/* Размер иконки можно настроить */}
         </button>
         {children}
       </div>
     </div>,
-    modalRootRef.current
+    portalNode // Используем узел из состояния
   );
 };
 

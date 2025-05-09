@@ -51,7 +51,7 @@ const Header: FC = () => {
 
         {user ? (
           <>
-            <Link href="/favorites" className="text-while" title="Избранное">
+            <Link href="/favorites" className="text-while hover:text-primary" title="Избранное" >
               <AiOutlineHeart size={37} />
             </Link>
             <HeaderCart />

@@ -6,16 +6,16 @@ import { FileService } from '@/src/assets/styles/services/file.service';
 import { CategoryService } from '@/src/assets/styles/services/category.service';
 import { ICategory } from '@/src/types/category.interface';
 import { IProduct } from '@/src/types/product.interface';
-import { TypeProductData } from '@/src/assets/styles/services/product/product.types'; // Используем обновленный тип
-import styles from './AddGameModal.module.scss';
+import { TypeProductData } from '@/src/assets/styles/services/product/product.types';
+import styles from './AddGameModal.module.scss'; // Импортируем наши стили
 import { Trash2 } from 'lucide-react';
 import Select, { MultiValue, StylesConfig } from 'react-select';
 
 interface IAddGameModal {
   isOpen: boolean;
   closeModal: () => void;
-  initialData?: IProduct | null; // Данные для предзаполнения в режиме редактирования
-  onFormSubmit?: () => void;   // Коллбэк после успешного сабмита
+  initialData?: IProduct | null;
+  onFormSubmit?: () => void;
 }
 
 interface CategoryOption {
@@ -25,24 +25,38 @@ interface CategoryOption {
 
 const customSelectStyles: StylesConfig<CategoryOption, true> = {
   menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+  control: (provided) => ({ // Стили для основного контейнера Select
+    ...provided,
+    borderColor: '#e2e8f0', // Tailwind gray-300
+    borderRadius: '0.375rem', // Tailwind rounded-md
+    minHeight: 'calc(1.25rem + 8px * 2 + 2px)', // Примерно как у formInput (line-height + padding-y * 2 + border * 2)
+    boxShadow: 'none', // Убираем дефолтную тень при фокусе, если есть
+    '&:hover': {
+      borderColor: '#cbd5e1', // Tailwind gray-400
+    },
+  }),
+  // Дополнительные стили для react-select можно добавить здесь, если нужно
 };
 
-// Тип для внутреннего состояния формы
 type GameFormData = Omit<TypeProductData, 'description' | 'images' | 'categories'> & {
-    game_id?: number; // ID для режима редактирования
+    game_id?: number;
     description: string;
     images: string[];
     categories: number[];
 };
 
 const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFormSubmit }) => {
+  // ... (весь остальной код компонента: getInitialFormData, useState, useEffect, handleChange, и т.д. ОСТАЕТСЯ ПРЕЖНИМ)
+  // Я не буду его повторять здесь для краткости, он был в предыдущем ответе и не меняется из-за SCSS правок,
+  // кроме JSX части рендера.
+
+  // --- Начало не измененной логики (взято из предыдущего ответа) ---
   console.log('AddGameModal Render/Update. isOpen:', isOpen, 'initialData:', initialData ? `ID: ${initialData.game_id}` : initialData);
 
-  // Функция для получения начального состояния формы
   const getInitialFormData = (data?: IProduct | null): GameFormData => {
+    // ... (код без изменений)
     console.log('getInitialFormData: initialData:', data ? `ID: ${data.game_id}` : data);
     if (data) {
-      // Режим редактирования: заполняем из initialData
       return {
         game_id: data.game_id,
         name: data.name || '',
@@ -52,11 +66,10 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
         categories: data.game_categories?.map(gc => gc.category.category_id).filter((id): id is number => typeof id === 'number') || [],
       };
     }
-    // Режим добавления: возвращаем пустые значения
     return { name: '', description: '', price: 0, images: [], categories: [] };
   };
 
-  const [gameData, setGameData] = useState<GameFormData>(() => getInitialFormData(initialData)); // Инициализация при первом рендере
+  const [gameData, setGameData] = useState<GameFormData>(() => getInitialFormData(initialData));
   const [selectedCategoryOptions, setSelectedCategoryOptions] = useState<MultiValue<CategoryOption>>([]);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -66,29 +79,24 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
   const [availableCategories, setAvailableCategories] = useState<ICategory[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
-  // Определяем режим редактирования
   const isEditMode = !!initialData && !!initialData.game_id;
 
-  // Эффект для загрузки категорий и СИНХРОНИЗАЦИИ состояния с initialData
   useEffect(() => {
+    // ... (код без изменений)
     console.log('AddGameModal useEffect [isOpen, initialData]. isOpen:', isOpen);
-    let isMounted = true; // Флаг для предотвращения обновления состояния после размонтирования
+    let isMounted = true;
 
     if (isOpen) {
-      // Сбрасываем предыдущие ошибки и статусы при каждом открытии
       setError('');
       setIsSubmitting(false);
       setIsUploadingImages(false);
       setUploadProgress({});
       setUploadErrors({});
       
-      // Устанавливаем форму на основе initialData, переданного при открытии
       const currentInitialFormData = getInitialFormData(initialData);
       console.log('useEffect: Устанавливаем gameData из initialData:', currentInitialFormData);
       setGameData(currentInitialFormData);
 
-      // Загружаем категории, если их еще нет
-      // (можно оптимизировать и не грузить каждый раз, если они не меняются)
       setIsLoadingCategories(true);
       CategoryService.getAll()
         .then(response => {
@@ -97,8 +105,6 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
           console.log('useEffect: Категории загружены:', fetchedCategories.length);
           setAvailableCategories(fetchedCategories);
 
-          // Обновляем выбранные опции для react-select ПОСЛЕ загрузки категорий
-          // и на основе УЖЕ установленного gameData
           if (currentInitialFormData.categories.length > 0 && fetchedCategories.length > 0) {
             const preselectedOptions = fetchedCategories
               .filter(cat => currentInitialFormData.categories.includes(cat.category_id))
@@ -106,7 +112,7 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
             console.log('useEffect: Устанавливаем selectedCategoryOptions:', preselectedOptions);
             setSelectedCategoryOptions(preselectedOptions);
           } else {
-            console.log('useEffect: Сброс selectedCategoryOptions (нет категорий в данных или не загружены)');
+            console.log('useEffect: Сброс selectedCategoryOptions');
             setSelectedCategoryOptions([]);
           }
         })
@@ -120,15 +126,12 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
           if (isMounted) setIsLoadingCategories(false);
         });
     }
-
-    return () => {
-      isMounted = false; // Очистка при размонтировании
-    };
-
-  }, [isOpen, initialData]); // Зависимость только от isOpen и initialData
+    return () => { isMounted = false; };
+  }, [isOpen, initialData]);
 
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    // ... (код без изменений)
     const { name, value } = e.target;
     setGameData(prev => ({
       ...prev,
@@ -137,17 +140,17 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
   };
 
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    // ... (код без изменений)
      const files = e.target.files;
     if (!files || files.length === 0) return;
     console.log(`handleImageUpload: выбрано ${files.length} файлов`);
     setError(''); setUploadErrors({}); setUploadProgress({}); setIsUploadingImages(true);
     const newImageUrls: string[] = []; const currentErrors: Record<string, string> = {};
-    // Загрузка файлов по одному
-    for (const file of Array.from(files)) { // Итерация по FileList
+    for (const file of Array.from(files)) {
         console.log(`Загрузка файла: ${file.name}`);
         try {
             setUploadProgress(prev => ({ ...prev, [file.name]: 0 }));
-            const url = await FileService.uploadGameImage(file); // Сервис загрузки
+            const url = await FileService.uploadGameImage(file);
             console.log(`Файл ${file.name} загружен, URL: ${url}`);
             newImageUrls.push(url);
             setUploadProgress(prev => ({ ...prev, [file.name]: 100 }));
@@ -163,6 +166,7 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
   };
 
   const handleRemoveImage = (indexToRemove: number) => {
+    // ... (код без изменений)
      console.log(`handleRemoveImage: удаление индекса ${indexToRemove}`);
      setGameData(prev => ({
       ...prev,
@@ -171,6 +175,7 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
   };
 
   const handleCategorySelectChange = (selectedOptions: MultiValue<CategoryOption>) => {
+    // ... (код без изменений)
     console.log('handleCategorySelectChange:', selectedOptions);
     setSelectedCategoryOptions(selectedOptions);
     const selectedIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
@@ -179,6 +184,7 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
   };
 
   const categorySelectOptions: CategoryOption[] = availableCategories.map(cat => ({
+    // ... (код без изменений)
     value: cat.category_id,
     label: cat.category_name,
   }));
@@ -187,46 +193,36 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
     e.preventDefault();
     console.log('handleSubmit: Начало. isEditMode:', isEditMode, 'gameData:', JSON.stringify(gameData));
     setIsSubmitting(true); setError('');
-
-    const { game_id, ...payloadData } = gameData; // Отделяем game_id
-
-    // Формируем финальный payload, соответствующий TypeProductData
+    const { game_id, ...payloadData } = gameData;
     const finalPayload: TypeProductData = {
         name: payloadData.name.trim(),
         price: payloadData.price,
-        description: payloadData.description.trim() || undefined, // Отправляем undefined, если пусто
+        description: payloadData.description.trim() || undefined,
         images: payloadData.images,
-        categories: payloadData.categories, // Массив чисел
+        categories: payloadData.categories,
     };
-
-    // Валидация
     const missing: string[] = [];
     if (!finalPayload.name) missing.push('название');
-    // Описание теперь опционально в TypeProductData, валидация не обязательна
     if (finalPayload.images.length === 0) missing.push('хотя бы одно изображение');
-    if (finalPayload.categories.length === 0) missing.push('категории'); // Считаем обязательными
-
+    if (finalPayload.categories.length === 0) missing.push('категории');
     if (missing.length) {
       setError(`Пожалуйста, заполните: ${missing.join(', ')}`);
       setIsSubmitting(false);
       console.warn('handleSubmit: Ошибка валидации', missing);
       return;
     }
-
     try {
       if (isEditMode && game_id) {
-        // Режим Редактирования
         console.log(`handleSubmit: Вызов ProductService.update для ID: ${game_id} с payload:`, finalPayload);
         await ProductService.update(game_id, finalPayload);
-        alert('Игра успешно обновлена!');
+        alert('Игра успешно обновлена!'); // Для редактирования оставим без эмодзи, или можно тоже добавить ✅
       } else {
-        // Режим Добавления
         console.log(`handleSubmit: Вызов ProductService.create с payload:`, finalPayload);
         await ProductService.create(finalPayload);
-        alert('Игра успешно добавлена!');
+        alert('✅ Игра успешно добавлена!'); // <--- ИЗМЕНЕНИЕ ЗДЕСЬ
       }
-      if (onFormSubmit) { onFormSubmit(); } // Вызываем коллбэк для обновления списка
-      closeModal(); // Закрываем модалку
+      if (onFormSubmit) { onFormSubmit(); }
+      closeModal();
     } catch (err: any) {
       console.error('❌ Error submitting form:', err.response?.data || err.message);
       let errorMsg = isEditMode ? "Ошибка при обновлении игры." : "Ошибка при добавлении игры.";
@@ -237,48 +233,74 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
       setIsSubmitting(false);
     }
   };
+  // --- Конец не измененной логики ---
 
-  // --- JSX ---
+
+  // --- JSX с изменениями для отступов ---
   return (
     <Modal isOpen={isOpen} closeModal={closeModal}>
-      <div className={styles.modalWindow}>
-        <h2 className="text-xl font-semibold text-center">
+      {/* Обертка с кастомными стилями для модального окна */}
+      <div className={`${styles.modalWindow} p-4 md:p-6`}> {/* Добавлены Tailwind паддинги */}
+        <h2 className="text-xl font-semibold text-center mb-4">
           {isEditMode ? 'Редактировать игру' : 'Добавить игру'}
         </h2>
-        {error && <p className={styles.errorText}>{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4 p-2">
-          {/* Имя */}
-          <input
-            type="text" name="name" value={gameData.name} onChange={handleChange}
-            placeholder="Название игры" className={styles.formInput} required
-            disabled={isSubmitting}
-          />
-          {/* Описание */}
-          <textarea
-            name="description" value={gameData.description} onChange={handleChange}
-            placeholder="Описание игры" className={`${styles.formInput} ${styles.textArea}`}
-            disabled={isSubmitting}
-          />
-          {/* Цена */}
-          <input
-            type="number" name="price" value={gameData.price}
-            onChange={handleChange} placeholder="Цена" className={styles.formInput} min={0} required
-            disabled={isSubmitting}
-          />
+        {error && <p className={`${styles.errorText} mb-3 text-center`}>{error}</p>}
+        
+        {/* Форма с Tailwind для отступов между группами полей */}
+        <form onSubmit={handleSubmit} className="w-full space-y-4"> {/* w-full и space-y-4 */}
+          {/* Название */}
+          <div>
+            <label htmlFor="name" className="block mb-1 font-semibold text-sm text-gray-700">Название</label>
+            <input
+              id="name"
+              type="text" name="name" value={gameData.name} onChange={handleChange}
+              placeholder="Название игры" className={styles.formInput} required
+              disabled={isSubmitting}
+            />
+          </div>
 
+          {/* Описание */}
+          <div>
+            <label htmlFor="description" className="block mb-1 font-semibold text-sm text-gray-700">Описание</label>
+            <textarea
+              id="description"
+              name="description" value={gameData.description} onChange={handleChange}
+              placeholder="Описание игры" className={`${styles.formInput} ${styles.textArea}`}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          {/* Цена */}
+          <div>
+            <label htmlFor="price" className="block mb-1 font-semibold text-sm text-gray-700">Цена</label>
+            <input
+              id="price"
+              type="number"
+              name="price"
+              value={gameData.price}
+              onChange={handleChange}
+              placeholder="Цена"
+              className={styles.formInput}
+              min={0}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+          
           {/* Загрузка Изображений */}
           <div>
-            <label htmlFor="gameImageUpload" className="block mb-1">Изображения игры (можно несколько)</label>
+            <label htmlFor="gameImageUpload" className="block mb-1 font-semibold text-sm text-gray-700">Изображения игры (можно несколько)</label>
             <input
               id="gameImageUpload" type="file" accept="image/*" multiple
-              onChange={handleImageUpload} className={styles.formInput} disabled={isUploadingImages || isSubmitting}
+              onChange={handleImageUpload} className={`${styles.formInput} cursor-pointer`} // Добавил cursor-pointer для инпута файла
+              disabled={isUploadingImages || isSubmitting}
             />
-            {isUploadingImages && <p className="text-sm text-gray-500 mt-1">Загрузка...</p>}
+            {isUploadingImages && <p className="text-xs text-gray-500 mt-1">Загрузка...</p>}
             {Object.keys(uploadProgress).length > 0 && !isUploadingImages && (
               <div className="mt-2 space-y-1 text-xs">
                 {Object.entries(uploadProgress).map(([fileName, progress]) => (
                   <div key={fileName}>
-                    <span>{fileName}: </span>
+                    <span className="truncate max-w-[150px] inline-block">{fileName}: </span> {/* Ограничение длины имени файла */}
                     {progress === 100 && <span className="text-green-600">Загружено</span>}
                     {progress === -1 && <span className="text-red-600">Ошибка: {uploadErrors[fileName] || 'Неизвестная ошибка'}</span>}
                     {(progress !== undefined && progress >= 0 && progress < 100) && <span>Загрузка {progress}%</span>}
@@ -287,14 +309,14 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
               </div>
             )}
             {gameData.images.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+              <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {gameData.images.map((imageUrl, index) => (
-                  <div key={imageUrl + index} className="relative group">
-                    <img src={imageUrl} alt={`Превью ${index + 1}`} className="w-full h-24 object-cover rounded"/>
+                  <div key={imageUrl + index} className="relative group aspect-square"> {/* aspect-square для квадратных превью */}
+                    <img src={imageUrl} alt={`Превью ${index + 1}`} className="w-full h-full object-cover rounded shadow-sm"/>
                     <button type="button" onClick={() => handleRemoveImage(index)}
-                      className="absolute top-0 right-0 m-1 p-0.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 p-1 bg-red-600 hover:bg-red text-while rounded-full opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all duration-150"
                       aria-label="Удалить изображение" title="Удалить изображение" disabled={isUploadingImages || isSubmitting}>
-                      <Trash2 size={16} />
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 ))}
@@ -304,26 +326,27 @@ const AddGameModal: FC<IAddGameModal> = ({ isOpen, closeModal, initialData, onFo
 
           {/* Поле Категории с react-select */}
           <div>
-            <label htmlFor="categoriesSelect" className="block mb-1">Категории</label>
+            <label htmlFor="categoriesSelect" className="block mb-1 font-semibold text-sm text-gray-700">Категории</label>
             <Select<CategoryOption, true>
               id="categoriesSelect" instanceId="categories-select-unique-id"
               options={categorySelectOptions} value={selectedCategoryOptions}
               onChange={handleCategorySelectChange} isMulti isLoading={isLoadingCategories}
               isDisabled={isLoadingCategories || isSubmitting || (availableCategories.length === 0 && isOpen && !error.includes("Ошибка загрузки категорий"))}
-              placeholder="Выберите категории..."
+              placeholder={isLoadingCategories ? "Загрузка категорий..." : "Выберите категории..."}
               noOptionsMessage={() => isLoadingCategories ? "Загрузка..." : "Категории не найдены"}
-              classNamePrefix="react-select"
+              className="react-select-container" // Можно добавить общий класс для стилизации контейнера
+              classNamePrefix="react-select"    // Для стилизации внутренних элементов
               menuPortalTarget={typeof window !== 'undefined' ? document.body : null}
               styles={customSelectStyles} menuPosition="fixed"
             />
-             {isLoadingCategories && <p className="text-xs text-gray-500 mt-1">Загрузка...</p>}
+             {isLoadingCategories && <p className="text-xs text-gray-500 mt-1">Загрузка категорий...</p>}
              {!isLoadingCategories && availableCategories.length === 0 && isOpen && !error.includes("Ошибка загрузки категорий") && (
-                  <p className="text-xs text-orange-500 mt-1">Категории не загружены или отсутствуют.</p>
+                  <p className="text-xs text-orange-600 mt-1">Категории не загружены или отсутствуют. Добавьте их сначала.</p>
              )}
           </div>
 
           {/* Кнопка */}
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-3"> {/* Увеличил отступ кнопки */}
             <button type="submit" className={styles.submitButton}
                     disabled={isUploadingImages || isLoadingCategories || isSubmitting}>
               {isSubmitting ? 'Сохранение...' : (isEditMode ? 'Сохранить изменения' : 'Добавить игру')}
