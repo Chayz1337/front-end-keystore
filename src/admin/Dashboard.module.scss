@@ -29,7 +29,7 @@
   
   /* Текст */
   .item div:first-child {
-    @apply text-gray font-medium mb-2;
+    @apply text-gray-500 font-medium mb-2;
   }
   
   .item div:last-child {

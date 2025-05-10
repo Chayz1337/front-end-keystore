@@ -1,4 +1,4 @@
-import { IAuthResponse, IEmailPassword } from './../../../../store/user/user.interface';
+import { IAuthResponse, IEmailPassword } from '../../../../store/user/user.interface';
 import { saveToStorage } from './auth.helper';
 import Cookies from 'js-cookie';
 import { axiosClassic } from '../../api/api.interceptor';
@@ -27,5 +27,4 @@ export const AuthService = {
             return response
     }
 }
-
 

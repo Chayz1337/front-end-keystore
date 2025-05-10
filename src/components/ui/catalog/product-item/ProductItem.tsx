@@ -6,7 +6,7 @@ import ProductRating from "./ProductRating";
 import AddToCartButton from "./AddToCartButton";
 import { IProduct } from "@/src/types/product.interface";
 import { convertPrice } from "@/src/utils/convertPrice";
-import { useAuth } from "@/src/hooks/useAuth"; // << 1. Импортируйте useAuth
+import { useAuth } from "@/src/hooks/useAuth";
 
 const DynamicFavoriteButton = dynamic(
   () => import("./FavoriteButton"),
@@ -17,12 +17,26 @@ const ProductItem: FC<{ games: IProduct; isSorting?: boolean }> = ({
   games,
   isSorting = false,
 }) => {
-  const { user } = useAuth(); // << 2. Получите статус пользователя
+  const { user } = useAuth();
 
   return (
-    <div className={`flex flex-col group ${isSorting ? "animate-soft-ping" : ""}`}>
-      <div className="bg-while rounded-xl relative mb-2 shadow-md hover:shadow-lg transition-shadow duration-200 ease-in-out">
-        <div className="rounded-xl overflow-hidden h-52 sm:h-64 w-full">
+    <div className={`flex flex-col group`}>
+      <div 
+        className={`
+          bg-while rounded-xl relative mb-2 
+          hover:shadow-lg transition-all duration-200 ease-in-out {/* Добавили transition-all сюда */}
+          ${isSorting 
+            ? "shadow-xl scale-103 -translate-y-1" // Применяем scale, translate и shadow сюда
+            : "shadow-md scale-100 translate-y-0"
+          }
+        `}
+      >
+        <div 
+          className={`
+            rounded-xl overflow-hidden h-52 sm:h-64 w-full
+            {/* Убрали отсюда transition и условные классы для scale/translate */}
+          `}
+        >
           <Link href={`/games/${games.slug}`} passHref legacyBehavior>
             <a className="block w-full h-full">
               <Image
@@ -37,8 +51,7 @@ const ProductItem: FC<{ games: IProduct; isSorting?: boolean }> = ({
           </Link>
         </div>
 
-        {/* 3. Условный рендеринг блока с кнопками */}
-        {user && ( // Показываем этот блок только если пользователь авторизован
+        {user && (
           <div className="absolute top-2.5 right-2.5 z-10 flex flex-col gap-2">
             <div className="bg-while/60 hover:bg-while/90 backdrop-blur-sm p-1.5 sm:p-2 rounded-full shadow-md hover:shadow-lg transition-all duration-150">
               <DynamicFavoriteButton gameId={games.game_id} />

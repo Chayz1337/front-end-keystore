@@ -1,5 +1,5 @@
 import { instanse } from '../api/api.interceptor';
-import { IFullUser, IUser } from '@/src/types/user.interface';
+import { IFullUser, IUser, UserProfileUpdateDto } from '@/src/types/user.interface';
 
 type TypeData = {
   email: string;
@@ -21,11 +21,11 @@ export const UserService = {
   },
 
   /** Обновление профиля пользователя */
-  async updateProfile(data: TypeData) {
+   async updateProfile(data: UserProfileUpdateDto) { // <--- ИЗМЕНЕНО: теперь принимает UserProfileUpdateDto
     return instanse<IUser>({
-      url: `${USERS}/profile`, // исправлено: убрана лишняя }
-      method: 'PUT',
-      data,
+      url: `${USERS}/profile/edit`,
+      method: 'PATCH',
+      data, // `data` теперь не содержит `email`
     });
   },
 

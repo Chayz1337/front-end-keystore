@@ -1,7 +1,7 @@
 // src/components/ui/modal/KeysDisplayModal.tsx
 import { FC, useState } from 'react';
 import Modal from '@/src/components/ui/modal/Modal';
-import { IOrder, IOrderGameKeyItem } from '@/src/types/order.intefrace';
+import { IOrder, IOrderGameKeyItem } from '@/src/types/order.interface';
 import { FiCopy, FiCheckCircle } from 'react-icons/fi'; // Иконки для копирования
 
 interface KeysDisplayModalProps {

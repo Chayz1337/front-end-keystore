@@ -6,6 +6,7 @@ export interface IUserState {
     role?:string
 }
 
+
 export interface ITokens {
     accessToken: string
     refreshToken: string
@@ -14,6 +15,7 @@ export interface ITokens {
 export interface IInitialState {
     user: IUserState | null
     isLoading: boolean
+    error?: string | null;
 }
 
 export interface IEmailPassword {

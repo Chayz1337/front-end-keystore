@@ -1,16 +1,22 @@
-import { IOrder } from "./order.intefrace"
+// src/types/user.interface.ts
+import { IOrder } from "./order.interface";
 import { IProduct } from "./product.interface";
 
 export interface IUser {
     id: number;
     email: string;
     name: string;
-    avatarPath: string | null; // или string | undefined, если это поле может быть неопределённым
+    avatarPath: string | null;
     phone: string;
 }
 
-
 export interface IFullUser extends IUser {
-    favorites: IProduct[]
-    orders: IOrder[]
+    favorites: IProduct[];
+    orders: IOrder[];
 }
+
+export type UserProfileUpdateDto = {
+    username?: string;
+    avatar_path?: string;
+    password?: string;
+};

@@ -18,7 +18,7 @@ const ProductInformation: React.FC<IProductInformation> = ({ product }) => {
       </div>
 
       {/* Тип издания */}
-      <div className="text-sm text-gray-500 mb-2">
+      <div className="text-sm text-gray-700 mb-2">
         Издание: <span className="font-medium text-gray-800">Стандартное</span>
       </div>
 
