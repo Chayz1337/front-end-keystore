@@ -14,7 +14,7 @@ export const OrderService = {
 
   async getByUserId() {
     return instanse<IOrder[]>({
-      url: `${ORDERS}/by-user`,
+      url: `${ORDERS}`,
       method: 'GET'
     })
   },

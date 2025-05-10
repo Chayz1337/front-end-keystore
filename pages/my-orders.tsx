@@ -170,7 +170,7 @@ const MyOrders: FC = () => {
                       {/* Средняя часть: Итоговая сумма */}
                       <div className="mb-4">
                         <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Итого:</span>
+                          <span className="text-m text-aqua font-semibold">Итого:</span>
                           <span className="text-lg sm:text-xl font-bold text-black ">{convertPrice(Number(order.total_amount))}</span>
                         </div>
                       </div>

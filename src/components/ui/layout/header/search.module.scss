@@ -1,0 +1,14 @@
+@keyframes smoothOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animateSmoothOpen { /* Имя класса в camelCase */
+  animation: smoothOpen 0.3s ease-out forwards;
+}

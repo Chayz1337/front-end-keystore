@@ -3,31 +3,31 @@ import { useActions } from '@/src/hooks/user.actions';
 import { useCart } from '@/src/hooks/useCart';
 import Button from '@/src/components/ui/button/Button';
 import { IProduct } from '@/src/types/product.interface';
-import { useAuth } from '@/src/hooks/useAuth'; // добавляем хук авторизации
+import { useAuth } from '@/src/hooks/useAuth';
 
 interface AddToCartInlineProps {
   product: IProduct;
 }
 
 const AddToCartInline: FC<AddToCartInlineProps> = ({ product }) => {
-  const { user } = useAuth(); // получаем текущего пользователя
+  const { user } = useAuth();
   const { addToCart, removeFromCart } = useActions();
   const { items } = useCart();
 
-  // Если пользователь не авторизован — просто отображаем кнопку с сообщением
   if (!user) {
     return (
-      <Button
-        disabled
-        variant="orange"
-        className="mt-1 w-full py-2 px-4 rounded font-semibold opacity-50 cursor-not-allowed bg-gray-400"
-      >
-        Войдите в профиль, чтобы добавить в корзину
-      </Button>
+      <div className="flex justify-center">
+        <Button
+          disabled
+          variant="orange"
+          className="w-69 py-4 px-4 text-base rounded font-medium opacity-50 cursor-not-allowed bg-gray-400"
+        >
+          Войдите, чтобы добавить в корзину
+        </Button>
+      </div>
     );
   }
 
-  // Проверяем, есть ли товар в корзине
   const currentCartItem = items.find(
     cartItem => cartItem.games.game_id === product.game_id
   );
@@ -55,19 +55,21 @@ const AddToCartInline: FC<AddToCartInlineProps> = ({ product }) => {
   const buttonText = isInCart
     ? 'Удалить из корзины'
     : product.stock > 0
-      ? 'Добавить в корзину'
-      : 'Нет в наличии';
+    ? 'Добавить в корзину'
+    : 'Нет в наличии';
 
   return (
-    <Button
-      onClick={handleClick}
-      disabled={isDisabled}
-      variant="orange"
-      className={`mt-1 w-full py-2 px-4 rounded font-semibold
-        ${isDisabled ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'hover:bg-primary-dark transition-colors'}`}
-    >
-      {buttonText}
-    </Button>
+    <div className="flex justify-center">
+<Button
+  onClick={handleClick}
+  disabled={isDisabled}
+  variant="orange"
+  className={`w-64 py-3 px-6 text-base rounded font-medium
+    ${isDisabled ? 'opacity-50 cursor-not-allowed bg-gray-400' : 'hover:bg-primary-dark transition-colors'}`}
+>
+  {buttonText}
+</Button>
+    </div>
   );
 };
 
