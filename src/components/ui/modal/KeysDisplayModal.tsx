@@ -66,7 +66,7 @@ const KeysDisplayModal: FC<KeysDisplayModalProps> = ({ order, onClose }) => {
                         onClick={() => localHandleCopy(activationKey)}
                         className={`flex-shrink-0 inline-flex items-center justify-center px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-medium transition-all duration-150 ease-in-out transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-opacity-75
                           ${copiedKeyText === activationKey
-                            ? 'bg-green-500 hover:bg-green-600 text-white focus:ring-green-400' 
+                            ? 'bg-green-300 hover:bg-green-300 text-white focus:ring-green-400' 
                             : 'bg-blue-500 hover:bg-blue-600 text-white focus:ring-blue-400'}`
                         }
                         aria-label={copiedKeyText === activationKey ? "Ключ скопирован" : `Скопировать ключ ${activationKey.substring(0, 5)}...`}

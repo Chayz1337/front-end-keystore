@@ -17,7 +17,7 @@ const ReviewItem: FC<{ review: IReview }> = ({ review }) => {
           <FaUserAlt size={40} className="text-gray-500" />
         </div>
         <div>
-          <div className="font-medium">{review.user.email}</div>
+          <div className="font-medium">{review.user.name}</div>
           <div className="text-gray-400 text-xs">{formattedDate}</div>
         </div>
       </div>

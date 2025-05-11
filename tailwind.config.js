@@ -13,7 +13,7 @@ const colors = {
   secondary: '#161D25',
   'bg-color': '#F2F2F5',
   aqua: '#268697',
-  red: twColors.red[400],
+
 
   // наши новые статусы
   'status-completed': 'rgba(220, 250, 220, 0.5)', // светло-зелёный полупрозрачный
@@ -22,7 +22,9 @@ const colors = {
   // New colors from the cart toast
   yellow: twColors.yellow, // For text-yellow-400
   indigo: twColors.indigo, // For text-indigo-600, bg-indigo-50, bg-indigo-100, ring-indigo-500
-  slate: twColors.slate,   // For bg-slate-100, text-slate-700, bg-slate-200
+  slate: twColors.slate, 
+  red: twColors.red,  // For bg-slate-100, text-slate-700, bg-slate-200
+  green: twColors.green
 };
 
 module.exports = {

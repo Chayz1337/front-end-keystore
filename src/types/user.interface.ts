@@ -16,7 +16,7 @@ export interface IFullUser extends IUser {
 }
 
 export type UserProfileUpdateDto = {
-    username?: string;
+    name?: string;
     avatar_path?: string;
     password?: string;
 };

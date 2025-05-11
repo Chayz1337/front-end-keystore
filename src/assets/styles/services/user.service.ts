@@ -1,13 +1,7 @@
-import { instanse } from '../api/api.interceptor';
+// Убедитесь, что путь к api.interceptor корректен
+ // Примерный путь, исправьте на ваш
 import { IFullUser, IUser, UserProfileUpdateDto } from '@/src/types/user.interface';
-
-type TypeData = {
-  email: string;
-  password?: string;
-  name?: string;
-  avatarPath?: string;
-  phone?: string;
-};
+import { instanse } from '../api/api.interceptor';
 
 const USERS = 'users';
 
@@ -21,17 +15,21 @@ export const UserService = {
   },
 
   /** Обновление профиля пользователя */
-   async updateProfile(data: UserProfileUpdateDto) { // <--- ИЗМЕНЕНО: теперь принимает UserProfileUpdateDto
-    return instanse<IUser>({
+  async updateProfile(data: UserProfileUpdateDto) {
+    // Здесь мы ОЖИДАЕМ, что API вернет IFullUser
+    // Если это не так, см. комментарии в EditProfileModal.tsx
+    return instanse<IFullUser>({
       url: `${USERS}/profile/edit`,
       method: 'PATCH',
-      data, // `data` теперь не содержит `email`
+      data,
     });
   },
 
   /** Добавление/удаление игры из избранного */
   async toggleFavorite(productId: string | number) {
-    return instanse<IUser>({
+    // Предполагаем, что этот эндпоинт может возвращать IUser или только обновленный IFullUser.
+    // Если он возвращает IFullUser, измените на instanse<IFullUser>
+    return instanse<IUser>({ // Или IFullUser, если API возвращает полный профиль
       url: `${USERS}/profile/favorites/${productId}`,
       method: 'PATCH',
     });

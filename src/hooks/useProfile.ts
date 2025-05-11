@@ -1,15 +1,38 @@
-import { useQuery } from "@tanstack/react-query";
-import { UserService } from "../assets/styles/services/user.service";
-import { IFullUser } from "../types/user.interface";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
+// Убедитесь, что пути импорта ниже корректны для вашей структуры проекта
+import { UserService } from "@/src/assets/styles/services/user.service";
+import { IFullUser } from "@/src/types/user.interface";
 
-export const useProfile = () => {
-    const { data } = useQuery<IFullUser>({
-        queryKey: ['get profile'],  // Ключ запроса
-        queryFn: async () => {
-            const response = await UserService.getProfile();  // Получаем ответ от сервиса
-            return response.data;  // Достаем данные из response
-        },
-    });
+// Опционально: тип возвращаемого значения для ясности
+interface UseProfileResult {
+  profile: IFullUser | undefined;
+  isLoading: boolean;
+  isError: boolean;
+  // можно добавить другие поля из UseQueryResult<IFullUser>, если они нужны, например:
+  // error: Error | null;
+  // refetch: () => Promise<UseQueryResult<IFullUser>>;
+}
 
-    return { profile: data };
+export const useProfile = (): UseProfileResult => {
+  const { 
+    data: profileData, // Переименовываем data в profileData, чтобы не конфликтовать с profile ниже
+    isLoading, 
+    isError,
+    // error, // Можно также вернуть ошибку
+    // refetch // и функцию для перезапроса
+  } = useQuery<IFullUser, Error>({ // Второй generic тип для useQuery - это тип ошибки
+    queryKey: ['get profile'],
+    queryFn: async () => {
+      const response = await UserService.getProfile();
+      if (!response || !response.data) { // Дополнительная проверка
+        throw new Error("Failed to fetch profile or data is missing");
+      }
+      return response.data;
+    },
+    // Опциональные настройки React Query:
+    // staleTime: 5 * 60 * 1000, // Данные считаются "свежими" 5 минут
+    // refetchOnWindowFocus: true, // Перезапрашивать при фокусе на окне
+  });
+
+  return { profile: profileData, isLoading, isError /*, error, refetch */ };
 };

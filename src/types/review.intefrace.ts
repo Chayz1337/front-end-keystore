@@ -7,6 +7,7 @@ export interface IReview {
     created_at: string
     user: {
       user_id: number
+      name: string
       email: string
       avatar_path: string
     }

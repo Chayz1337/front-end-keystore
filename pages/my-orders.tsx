@@ -25,7 +25,7 @@ const orderStatusMap: Record<EnumOrderStatus, StatusDisplayInfo> = {
   [EnumOrderStatus.COMPLETED]: {
     text: 'Завершен',
     textColor: 'text-green-700',
-    borderColorCard: 'border-green-500',
+    borderColorCard: 'border-green-300',
     indicatorColorStyle: '#10B981',
   },
   [EnumOrderStatus.PENDING]: {
@@ -37,7 +37,7 @@ const orderStatusMap: Record<EnumOrderStatus, StatusDisplayInfo> = {
   [EnumOrderStatus.CANCELLED]: {
     text: 'Отменен',
     textColor: 'text-red-700',
-    borderColorCard: 'border-red-500',
+    borderColorCard: 'border-red-300',
     indicatorColorStyle: '#EF4444',
   },
   [EnumOrderStatus.FAILED]: {
@@ -246,14 +246,19 @@ const MyOrders: FC = () => {
                            </Button>
                         )}
                         {order.status === EnumOrderStatus.PENDING && (
-                          <Button
-                            variant="orange"
+                          <button
+                            // Убираем 'variant="orange"' если он задает оранжевый фон,
+                            // или оставляем, если он задает только базовые стили кнопки, а цвет мы переопределим.
+                            // Для надежности, если variant="orange" задает фон, его лучше убрать или заменить
+                            // на вариант без цвета (например, variant="default" или variant="outline" если есть).
+                            // Сейчас я его уберу, предполагая, что мы полностью зададим стиль через className.
+                            
                             onClick={() => handleCancelOrder(order.order_id)}
                             disabled={cancellingOrderId === order.order_id || cancelOrderMutation.isPending}
-                            className="text-center text-sm px-4 py-2"
+                            className="bg-red-500 hover:bg-red-600 text-while font-semibold text-center text-sm px-4 py-2 rounded-md transition-colors duration-150" // <--- Измененные и добавленные классы
                           >
                             {cancellingOrderId === order.order_id ? 'Отмена...' : 'Отменить заказ'}
-                          </Button>
+                          </button>
                         )}
                         {order.status === EnumOrderStatus.COMPLETED && order.order_keys && order.order_keys.length > 0 && (
                           <Button

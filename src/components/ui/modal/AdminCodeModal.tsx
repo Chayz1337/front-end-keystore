@@ -1,31 +1,27 @@
 // src/components/ui/modal/AdminPasswordModal.tsx
 import { FC, useState, FormEvent } from 'react';
-import { useAdminAuth } from '@/src/components/ui/admin/AdminAuthContext'; // Adjust path
-import styles from './AdminCode.module.scss'; // You'll need to create/style this
+import { useAdminAuth } from '@/src/components/ui/admin/AdminAuthContext';
+import styles from './AdminCode.module.scss'
 
-interface AdminPasswordModalProps {
-  // No explicit props needed as it uses context
-}
-
-const AdminPasswordModal: FC<AdminPasswordModalProps> = () => {
-  const { isPasswordModalOpen, closePasswordModal, verifyAdminAccess } = useAdminAuth();
+const AdminPasswordModal: FC = () => {
+  const {
+    isPasswordModalOpen,
+    closePasswordModal,
+    verifyAdminAccess,
+    errorMessage
+  } = useAdminAuth();
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (verifyAdminAccess(password)) {
-      setError('');
-      setPassword(''); // Clear password field
-      // Modal will be closed by context
-    } else {
-      setError('Неверный код администратора.');
-    }
+    setLoading(true);
+    const success = await verifyAdminAccess(password);
+    setLoading(false);
+    if (success) setPassword('');
   };
 
-  if (!isPasswordModalOpen) {
-    return null;
-  }
+  if (!isPasswordModalOpen) return null;
 
   return (
     <div className={styles.modalOverlay}>
@@ -41,16 +37,26 @@ const AdminPasswordModal: FC<AdminPasswordModalProps> = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoFocus
-              className={styles.inputField} // Add styling
+              className={styles.inputField}
             />
           </div>
-          {error && <p className={styles.errorMessage}>{error}</p>}
+          {errorMessage && (
+            <p className={styles.errorMessage}>{errorMessage}</p>
+          )}
           <div className={styles.modalActions}>
-            <button type="button" onClick={closePasswordModal} className={styles.buttonSecondary}>
+            <button
+              type="button"
+              onClick={closePasswordModal}
+              className={styles.buttonSecondary}
+            >
               Отмена
             </button>
-            <button type="submit" className={styles.buttonPrimary}>
-              Войти
+            <button
+              type="submit"
+              className={styles.buttonPrimary}
+              disabled={loading}
+            >
+              {loading ? 'Проверка...' : 'Войти'}
             </button>
           </div>
         </form>

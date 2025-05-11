@@ -76,7 +76,7 @@ const Cart: FC = () => {
                                 Активный заказ не оплачен
                               </p>
                               <p className="mt-1 text-sm text-gray-600">
-                                У вас уже есть неоплаченный заказ. Хотите его оплатить или перейти к вашим заказам для отмены?
+                                У вас уже есть неоплаченный заказ. Хотите его оплатить или перейти к вашим заказам для отмены? Если вы не отмените заказ, то он автоматически отменится через 30 минут.
                               </p>
                             </div>
                           </div>
@@ -87,7 +87,7 @@ const Cart: FC = () => {
                           <button
                             onClick={() => toast.dismiss(t.id)}
                             // Стиль для кнопки "Закрыть" (менее акцентная)
-                            className="order-1 sm:order-1 px-4 py-2 text-sm font-medium text-black bg-gray-200 hover:bg-red hover:text-black rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-colors duration-150 ease-in-out"
+                            className="order-1 sm:order-1 px-4 py-2 text-sm font-medium text-black bg-gray-200 hover:bg-red-400 hover:text-while rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 transition-colors duration-150 ease-in-out"
                           >
                             Закрыть
                           </button>
@@ -98,7 +98,7 @@ const Cart: FC = () => {
                               setIsShow(false);
                             }}
                             // Стиль для кнопки "К моим заказам" (вторичная)
-                            className="order-3 sm:order-2 px-4 py-2 text-sm font-medium text-gray-700 bg-while border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-colors duration-150 ease-in-out"
+                            className="order-3 sm:order-2 px-4 py-2 text-sm font-medium text-gray-700 bg-while border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 transition-colors duration-150 ease-in-out"
                           >
                             К моим заказам
                           </button>
@@ -109,7 +109,7 @@ const Cart: FC = () => {
                               setIsShow(false);
                             }}
                             // Стиль для кнопки "Оплатить существующий" (основная)
-                            className="order-2 sm:order-3 w-full sm:w-auto px-4 py-2 text-sm font-medium bg-primary text-while border border-transparent rounded-md shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500 transition-colors duration-150 ease-in-out hover:text-while"
+                            className="order-2 sm:order-3 w-full sm:w-auto px-4 py-2 text-sm font-medium bg-primary text-while border border-transparent rounded-md shadow-sm hover:bg-primary focus:outline-none focus:ring-2 focus:ring-offset-1  transition-colors duration-150 ease-in-out hover:text-while"
                           >
                             Оплатить существующий
                           </button>

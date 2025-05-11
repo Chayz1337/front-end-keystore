@@ -7,18 +7,30 @@ import { convertPrice } from '@/src/utils/convertPrice';
 import Loader from '@/src/components/ui/Loader';
 import Meta from '@/src/components/ui/Meta';
 import Layout from '@/src/components/ui/layout/Layout';
-import Heading from '@/src/components/ui/button/Heading'; // Ваш компонент Heading
+import Heading from '@/src/components/ui/button/Heading';
 import { reset } from '@/src/store/cart/cart.slice';
-import { EnumOrderStatus, IOrder } from '@/src/types/order.interface'; // Предполагаем, что IOrder определен
-import { FiCheckCircle, FiClock, FiAlertTriangle, FiCopy, FiArchive } from 'react-icons/fi'; // Иконки
-import toast from 'react-hot-toast'; // Для уведомления о копировании
+import { EnumOrderStatus, IOrder } from '@/src/types/order.interface';
+import { FiCheckCircle, FiClock, FiAlertTriangle, FiCopy, FiArchive } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
-// Используем ваш тип IOrder. PageOrderData теперь просто наследует все от IOrder.
-// Если вам нужны дополнительные, НЕ конфликтующие поля для этой страницы, их можно добавить сюда.
-interface PageOrderData extends IOrder {
-    // Свойство order_keys теперь будет полностью наследоваться из IOrder.
-    // Его переопределение отсюда удалено.
-}
+interface PageOrderData extends IOrder {}
+
+// Функция для получения русского названия статуса
+const getOrderStatusRussian = (status: EnumOrderStatus): string => {
+  switch (status) {
+    case EnumOrderStatus.COMPLETED:
+      return 'Оплачено';
+    case EnumOrderStatus.PENDING:
+      return 'В обработке';
+    // Добавьте другие статусы по необходимости
+    // case EnumOrderStatus.CANCELED:
+    //   return 'Отменен';
+    default:
+      // Если статус неизвестен или не требует перевода, возвращаем как есть
+      // или можно вернуть стандартизированную строку, например, status.toString()
+      return status as string;
+  }
+};
 
 const PaymentSuccess: FC = () => {
   const router = useRouter();
@@ -27,7 +39,6 @@ const PaymentSuccess: FC = () => {
   const dispatch = useDispatch();
   const cleared = useRef(false);
 
-  // Ваша логика получения данных
   const { data: orders, isLoading, isError: queryIsError, error: queryError } = useQuery<PageOrderData[], Error>({
     queryKey: ['my orders for payment success', orderId],
     queryFn: () => OrderService.getByUserId().then(response => response.data as PageOrderData[]),
@@ -59,7 +70,6 @@ const PaymentSuccess: FC = () => {
       });
   };
 
-  // --- Улучшенные состояния загрузки и ошибок ---
   if (isLoading) {
     return (
       <Meta title="Загрузка информации...">
@@ -79,7 +89,7 @@ const PaymentSuccess: FC = () => {
         <Layout>
            <div className="flex flex-col items-center justify-center text-center min-h-[calc(100vh-200px)] p-4">
             <FiAlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-            <Heading>Ошибка загрузки заказа</Heading> {/* Используем ваш компонент Heading */}
+            <Heading>Ошибка загрузки заказа</Heading>
             <p className="mt-2 text-gray-600 max-w-md">
               Не удалось загрузить информацию. Пожалуйста, попробуйте обновить страницу.
             </p>
@@ -102,7 +112,7 @@ const PaymentSuccess: FC = () => {
         <Layout>
           <div className="flex flex-col items-center justify-center text-center min-h-[calc(100vh-200px)] p-4">
             <FiArchive className="w-16 h-16 text-gray-400 mb-4" />
-            <Heading>Заказ не найден</Heading> {/* Используем ваш компонент Heading */}
+            <Heading>Заказ не найден</Heading>
             <p className="mt-2 text-gray-600 max-w-md">
               Заказ с ID <span className="font-semibold">{orderId}</span> не найден.
             </p>
@@ -117,38 +127,35 @@ const PaymentSuccess: FC = () => {
       </Meta>
     );
   }
-  // --- Конец улучшенных состояний ---
-
 
   const status = orderData.status;
   let statusIcon, pageTitle, statusMessage, mainBgClass, mainBorderClass, headingTextColor;
 
-  // Используем ваши цвета из tailwind.config.js для bg-status-completed и bg-status-pending
-  // или определяем более мягкие версии для фона контейнера
-  const softCompletedBg = 'bg-green-50'; // Пример мягкого фона
-  const softPendingBg = 'bg-orange-50';   // Пример мягкого фона
+  // Уменьшим размер иконок для отображения рядом с заголовком
+  const iconSizeClasses = "w-10 h-10"; // или "w-8 h-8" если 10 много
 
   switch (status) {
     case EnumOrderStatus.COMPLETED:
-      statusIcon = <FiCheckCircle className="w-12 h-12 text-green-500" />;
+      statusIcon = <FiCheckCircle className={`${iconSizeClasses} text-green-500`} />;
       pageTitle = "Оплата успешна";
       statusMessage = "Ваш заказ успешно оплачен и обработан!";
-      mainBgClass = softCompletedBg; // Используем ваш 'bg-status-completed' если хотите полупрозрачный
-      mainBorderClass = 'border-green-400';
-      headingTextColor = 'text-green-700';
+      mainBgClass = 'bg-gray-50'; // Нейтральный фон для секции деталей
+      mainBorderClass = 'border-gray-300'; // Нейтральная граница (можно 'border-green-300' для легкого акцента)
+      headingTextColor = 'text-green-600'; // Зеленый для заголовка и текста статуса
       break;
     case EnumOrderStatus.PENDING:
-      statusIcon = <FiClock className="w-12 h-12 text-orange-500" />;
+      statusIcon = <FiClock className={`${iconSizeClasses} text-orange-500`} />;
       pageTitle = "Заказ в обработке";
       statusMessage = "Ваш заказ ожидает подтверждения оплаты.";
-      mainBgClass = softPendingBg; // Используем ваш 'bg-status-pending' если хотите полупрозрачный
+      mainBgClass = 'bg-orange-50';
       mainBorderClass = 'border-orange-400';
       headingTextColor = 'text-orange-700';
       break;
     default:
-      statusIcon = <FiAlertTriangle className="w-12 h-12 text-gray-500" />;
+      statusIcon = <FiAlertTriangle className={`${iconSizeClasses} text-gray-500`} />;
       pageTitle = "Статус заказа";
-      statusMessage = `Статус вашего заказа: ${status}`;
+      // Используем getOrderStatusRussian для отображения статуса по умолчанию
+      statusMessage = `Статус вашего заказа: ${getOrderStatusRussian(status as EnumOrderStatus)}`;
       mainBgClass = 'bg-gray-50';
       mainBorderClass = 'border-gray-300';
       headingTextColor = 'text-gray-700';
@@ -159,13 +166,15 @@ const PaymentSuccess: FC = () => {
     <Meta title={pageTitle}>
       <Layout>
         <div className="max-w-3xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+          {/* Измененный блок заголовка: иконка слева от текста */}
           <div className="text-center mb-8">
-            {statusIcon}
-            {/* Используем ваш компонент Heading или простой h1 */}
-            <h1 className={`mt-3 text-3xl font-extrabold ${headingTextColor}`}>
-              {pageTitle}!
-            </h1>
-            <p className="mt-2 text-lg text-gray-600">{statusMessage}</p>
+            <div className="flex items-center justify-center gap-x-3 mb-3">
+              {statusIcon}
+              <h1 className={`text-3xl font-extrabold ${headingTextColor}`}>
+                {pageTitle}!
+              </h1>
+            </div>
+            <p className="mt-1 text-lg text-gray-600">{statusMessage}</p>
           </div>
 
           <section className={`border ${mainBorderClass} ${mainBgClass} rounded-xl shadow-lg p-6 sm:p-8`}>
@@ -176,7 +185,8 @@ const PaymentSuccess: FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6 text-sm">
               <div>
                 <span className="font-medium text-gray-500 block">Статус:</span>
-                <span className={`font-semibold ${headingTextColor}`}>{orderData.status}</span>
+                {/* Используем getOrderStatusRussian и headingTextColor для цвета статуса */}
+                <span className={`font-semibold ${headingTextColor}`}>{getOrderStatusRussian(orderData.status)}</span>
               </div>
               <div>
                 <span className="font-medium text-gray-500 block">Дата:</span>
@@ -199,7 +209,6 @@ const PaymentSuccess: FC = () => {
                   {orderData.order_keys.map((keyObj, idx) => (
                     <div key={idx} className="p-4 bg-while border border-gray-200 rounded-lg shadow-sm">
                       <div className="text-md font-semibold text-gray-700 mb-3">
-                        {/* Предполагаем, что IOrder.order_keys[n].game имеет свойство 'name' */}
                         {keyObj.game.name} 
                       </div>
                       <ul className="space-y-3">
@@ -227,7 +236,6 @@ const PaymentSuccess: FC = () => {
               </div>
             )}
 
-            {/* Кнопка "Перейти к моим заказам" */}
             <div className="mt-10 text-center">
                 <button
                     onClick={() => router.push('/my-orders')}
