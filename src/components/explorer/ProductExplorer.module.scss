@@ -1,19 +1,55 @@
+// ProductExplorer.module.scss
+
 .explorer {
-    @apply flex;
+  @apply flex; // Оставляем flex
 
-    > aside  {
-        @apply w-0 whitespace-nowrap opacity-0;
-        transition: width 600ms ease-in, opacity 600ms ease-in;
-    }
-    > section {
-        @apply w-full;
-        transition: width 600ms ease-in;
-    }
-    &.filterOpened {
-        @apply gap-5;
+  > aside {
+    // Уменьшил ширину до 1/4 (25%) - 2/6 (33%) кажется многовато для фильтров, можешь вернуть если нужно
+    @apply w-0 whitespace-nowrap opacity-0;
+    // Анимация для боковой панели остается
+    transition: width 600ms ease-in-out, opacity 600ms ease-in-out;
+  }
 
-        > aside {
-            @apply w-2/6 opacity-100;
-        }
+  > section {
+    @apply w-full; // Начинается с полной ширины
+    // --- УДАЛИТЬ ИЛИ ЗАКОММЕНТИРОВАТЬ ЭТУ СТРОКУ ---
+    // transition: width 600ms ease-in; // <--- УБИРАЕМ АНИМАЦИЮ ШИРИНЫ СЕКЦИИ
+    // -------------------------------------------
+     min-width: 0; // Помогает предотвратить проблемы с переполнением flex-элементов
+  }
+
+  &.filterOpened {
+    // Добавляем отступ между колонками, когда фильтры открыты
+    @apply gap-8; // Можно 5, 6, 8 - подбери
+
+    > aside {
+      // Задаем ширину для открытого состояния (1/4 = 25%, можно w-1/3 = 33% если нужно шире)
+      @apply w-1/4 opacity-100;
     }
+
+    // Ширина секции (> section) автоматически уменьшится из-за flexbox,
+    // когда aside получит ширину w-1/4. Анимацию ее ширины мы убрали.
+  }
 }
+
+// Рекомендация: Настроить ширину aside для разных экранов
+// @media (max-width: 1024px) { // Пример для экранов меньше lg
+//   .explorer {
+//     &.filterOpened {
+//       > aside {
+//         @apply w-1/3; // Сделать шире на средних экранах
+//       }
+//     }
+//   }
+// }
+// @media (max-width: 767px) { // Пример для маленьких экранов
+//   .explorer {
+//     @apply flex-col; // Или использовать другой подход для мобильных фильтров
+//     &.filterOpened {
+//       @apply gap-4;
+//       > aside {
+//          @apply w-full opacity-100; // Фильтры занимают всю ширину сверху
+//       }
+//     }
+//   }
+// }

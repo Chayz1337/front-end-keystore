@@ -2,24 +2,22 @@
 import { FC } from "react";
 import Meta from "@/src/components/ui/Meta";
 import Layout from "@/src/components/ui/layout/Layout";
-import CatalogPagination from "@/src/components/ui/catalog/CatalogPagination";
-import Button from "@/src/components/ui/button/Button";
-
+// Удаляем импорты CatalogPagination и Button (если он больше не нужен здесь)
+// import CatalogPagination from "@/src/components/ui/catalog/CatalogPagination";
+// import Button from "@/src/components/ui/button/Button";
+import ProductExplorer from "@/src/components/explorer/ProductExplorer"; // <-- Импортируем ProductExplorer
+import { ProductService } from "@/src/assets/styles/services/product/product.service"; // <-- Импорт сервиса нужен для getStaticProps
 import { TypePaginationProducts } from "@/src/types/product.interface";
+import { GetStaticProps, NextPage } from "next";
 
-const Home: FC<TypePaginationProducts> = ({ games, length }) => {
+// Теперь страница принимает initialProducts для ProductExplorer
+const HomePage: NextPage<{ initialProducts: TypePaginationProducts }> = ({ initialProducts }) => {
   return (
     <Meta title="Главная">
       <Layout>
-        {/* Уменьшаем вертикальные отступы */}
+        {/* Убираем кнопку "Просмотреть игры" и контейнер для нее */}
+        {/* 
         <div className="mt-3 mb-6 sm:mt-2 sm:mb-8"> 
-          {/* 
-            mt-3: margin-top: 0.75rem (12px) - маленький отступ сверху
-            mb-6: margin-bottom: 1.5rem (24px) - отступ до каталога игр
-            sm:mt-4: на sm экранах margin-top: 1rem (16px)
-            sm:mb-8: на sm экранах margin-bottom: 2rem (32px) 
-            Подбери значения, которые тебе нравятся.
-          */}
           <Button
             as="a"
             href="/explorer"
@@ -27,12 +25,39 @@ const Home: FC<TypePaginationProducts> = ({ games, length }) => {
           >
             Просмотреть игры
           </Button>
-        </div>
+        </div> 
+        */}
 
-        <CatalogPagination title="Игры" data={{ games, length }} />
+        {/* Вместо CatalogPagination используем ProductExplorer */}
+        {/* Передаем ему начальные данные */}
+        <ProductExplorer initialProducts={initialProducts} />
+        {/* Заголовок "Игры" теперь будет внутри ProductExplorer */}
+
       </Layout>
     </Meta>
   );
 };
 
-export default Home;
+
+// Изменяем getStaticProps, чтобы получить initialProducts
+export const getStaticProps: GetStaticProps<{ initialProducts: TypePaginationProducts }> = async () => {
+      // Загружаем больше продуктов для начального отображения, например, 8 (для 4 колонок) или 9 (для 3)
+      const perPage = 8; // Пример для 4 колонок, 2 ряда. Можешь поменять на 9, если хочешь 3х3.
+      const data = await ProductService.getAll({
+        page: 1,
+        perPage: perPage,
+        // Можно добавить сортировку по умолчанию, например, по новизне
+
+      });
+      // getStaticProps теперь должен возвращать объект в формате { props: { initialProducts: ... } }
+      return {
+        props: { 
+            initialProducts: data // Передаем весь объект с games и length/total
+        },
+        // Опционально: revalidate, чтобы страница периодически обновлялась в фоне
+        // revalidate: 60 // например, раз в минуту
+      };
+    }
+
+
+export default HomePage;

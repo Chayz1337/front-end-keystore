@@ -1,7 +1,7 @@
 import React from 'react';
 import { IProduct } from "@/src/types/product.interface";
 import { convertPrice } from "@/src/utils/convertPrice";
-import { FaClock, FaDownload, FaGamepad, FaLock } from "react-icons/fa";
+import { FaClock, FaDownload, FaGamepad, FaKey, FaLock } from "react-icons/fa";
 import AddToCartInline from "./AddToCartInline";
 import FavoriteButton from "@/src/components/ui/catalog/product-item/FavoriteButton";
 
@@ -41,18 +41,21 @@ const ProductInformation: React.FC<IProductInformation> = ({ product }) => {
       </div>
 
       {/* Наличие по полю stock */}
-      <div className="flex items-center text-sm text-gray-600 mb-4">
+            <div className="mb-4">
         {product.stock > 0 ? (
-          <p className="text-lg font-medium text-gray-800">
-            В наличии ключей: {product.stock}
+          // Если есть в наличии
+          <p className="text-lg font-medium text-green-600 dark:text-green-600 flex items-center"> {/* Используем зеленый цвет */}
+            <FaKey className="mr-2 text-primary" /> {/* Иконка ключа */}
+            В наличии {/* Текст изменен */}
           </p>
         ) : (
-          <p className="text-lg font-medium text-red-600">
+          // Если нет в наличии
+          <p className="text-lg font-medium text-red-600 dark:text-red-400 flex items-center"> {/* Красный цвет, убрал flex и иконку ключа */}
+          <FaKey className="mr-2 text-primary" />
             Нет доступных ключей
           </p>
         )}
       </div>
-
       {/* Кнопка добавления/удаления */}
       <AddToCartInline product={product} />
 

@@ -1,32 +1,36 @@
-import { IProduct } from "@/src/types/product.interface";
+// src/components/ui/catalog/Catalog.tsx
 import { FC } from "react";
 import ProductItem from "./product-item/ProductItem";
-import Spinner from "../input/Spinner";
 import Heading from "../button/Heading";
-import SortDropdown from "./SortDropdown";
-import Button from "../button/Button";
+import { IProduct } from "@/src/types/product.interface";
+import { cn } from "@/src/utils/cn";
 
-
-
+// 1. Обновляем интерфейс ICatalog
  interface ICatalog {
-    games: IProduct[]
-    isLoading?: boolean
-    title?:string
+    games: IProduct[];
+    title?: string;
+    isFilterOpen?: boolean; // <-- ДОБАВЛЕНО: Опциональный проп для состояния фильтра
  }
- const Catalog: FC<ICatalog> = ({ games, isLoading, title }) => {
-    if (isLoading) return <Spinner />;
-  
+
+// 2. Компонент принимает isFilterOpen в пропсах
+const Catalog: FC<ICatalog> = ({ games, title, isFilterOpen }) => {
+
     return (
       <section>
         {title && <Heading classname="mb-5">{title}</Heading>}
         {games.length ? (
-          <div className="grid grid-cols-4 gap-10">
+          // 3. Используем isFilterOpen для установки классов сетки
+          <div className={cn("grid gap-10", {
+              'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3': isFilterOpen, // 3 колонки, если фильтры открыты
+              'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4': !isFilterOpen // 4 колонки, если закрыты
+          })}>
             {games.map((game) => (
               <ProductItem key={game.game_id} games={game} />
             ))}
           </div>
         ) : (
-          <div>Тут нет продуктов</div>
+          // Сообщение, если игр нет
+          <div className="text-center text-gray-500 mt-10">Игр по вашим критериям не найдено.</div>
         )}
       </section>
     );

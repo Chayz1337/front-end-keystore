@@ -149,7 +149,7 @@ const Cart: FC = () => {
 
             <div
                 className={cn(
-                    'absolute top-[4.2rem] right-0 w-80 bg-secondary rounded-xl px-5 py-3 text-sm menu z-20 text-while',
+                    'absolute top-[4.2rem] right-0 w-80 bg-gray-800 rounded-xl px-5 py-3 text-sm menu z-20 text-while',
                     isShow ? 'open-menu' : 'close-menu'
                 )}
             >

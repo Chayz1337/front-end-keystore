@@ -24,7 +24,7 @@ export type TypeProducts = {
     games: IProduct[];
 }
 export type TypePaginationProducts = {
-    total?: number;
+    lengh?: number;
     length: number;
     games: IProduct[];
 }
