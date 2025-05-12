@@ -1,8 +1,8 @@
 // src/components/ui/modal/EditProfileModal.tsx
 'use client';
 
-import { FC, useEffect, useState, ChangeEvent } from 'react';
-import { FiX, FiUploadCloud, FiUser, FiSave, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FC, useEffect, useState, ChangeEvent, useRef } from 'react';
+import { FiX, FiUploadCloud, FiUser, FiSave, FiEye, FiEyeOff, FiAlertCircle, FiCheckCircle, FiInfo, FiTrash2 } from 'react-icons/fi';
 import Image from 'next/image';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -18,6 +18,7 @@ interface EditProfileModalProps {
 }
 
 const PROFILE_QUERY_KEY = ['get profile'];
+const AVATAR_BUCKET_PATH_SEGMENT = '/avatar/';
 
 const EditProfileModal: FC<EditProfileModalProps> = ({
   isOpen,
@@ -38,96 +39,174 @@ const EditProfileModal: FC<EditProfileModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fileStatusMessage, setFileStatusMessage] = useState<string | null>(null);
+  const [fileStatus, setFileStatus] = useState<{ message: string | null; type: 'info' | 'success' | 'error' }>({ message: null, type: 'info' });
+  const [isAvatarMarkedForDeletion, setIsAvatarMarkedForDeletion] = useState(false);
+
+  const initialAvatarRef = useRef<string | null>(null);
+  const modalContentRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (profile) {
+    if (isOpen && profile) {
       setName(profile.name || '');
-      setAvatarPathValue(profile.avatarPath || '');
-      setPreviewImage(profile.avatarPath || null);
-    } else {
+      const currentAvatar = profile.avatar_path || '';
+      setAvatarPathValue(currentAvatar);
+      setPreviewImage(currentAvatar);
+      initialAvatarRef.current = currentAvatar;
+      setIsAvatarMarkedForDeletion(false);
+    } else if (!isOpen) {
       setName('');
       setAvatarPathValue('');
+      setPassword('');
+      setShowPassword(false);
+      setSelectedFile(null);
       setPreviewImage(null);
+      setIsLoading(false);
+      setIsUploadingFile(false);
+      setError(null);
+      setFileStatus({ message: null, type: 'info' });
+      initialAvatarRef.current = null;
+      setIsAvatarMarkedForDeletion(false);
     }
-    setPassword('');
-    setShowPassword(false);
-    setSelectedFile(null);
-    setError(null);
-    setFileStatusMessage(null);
   }, [profile, isOpen]);
+
+  useEffect(() => {
+      if (!isOpen) {
+          document.body.style.overflow = '';
+          return;
+        }
+        const handleOutsideClick = (event: MouseEvent) => {
+          if (modalContentRef.current && !modalContentRef.current.contains(event.target as Node)) {
+            let targetElement = event.target as HTMLElement;
+            let clickedSelectPortal = false;
+            while (targetElement) {
+              if (targetElement.classList && targetElement.classList.contains('react-select__menu')) {
+                clickedSelectPortal = true;
+                break;
+              }
+              targetElement = targetElement.parentElement as HTMLElement;
+            }
+            if (!clickedSelectPortal) {
+              onClose();
+            }
+          }
+        };
+        const handleKeyDown = (event: KeyboardEvent) => {
+          if (event.key === 'Escape') {
+            onClose();
+          }
+        };
+        document.addEventListener('mousedown', handleOutsideClick);
+        document.addEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = 'hidden';
+        return () => {
+          document.removeEventListener('mousedown', handleOutsideClick);
+          document.removeEventListener('keydown', handleKeyDown);
+          document.body.style.overflow = '';
+        };
+    }, [isOpen, onClose])
 
   if (!isOpen) return null;
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    setFileStatusMessage(null);
+  const isValidImageSrc = Boolean(
+    previewImage &&
+    (previewImage.startsWith('/') || previewImage.startsWith('http') || previewImage.startsWith('data:image'))
+  );
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setFileStatus({ message: null, type: 'info' });
+    setSelectedFile(file);
+    setIsAvatarMarkedForDeletion(false);
+
     if (file) {
-      setSelectedFile(file);
+      const maxFileSize = 5 * 1024 * 1024;
+      if (file.size > maxFileSize) {
+        setFileStatus({ message: `Файл слишком большой (${(file.size / 1024 / 1024).toFixed(1)}MB). Максимум 5MB.`, type: 'error' });
+        setSelectedFile(null);
+        setPreviewImage(avatarPathValue || null);
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => setPreviewImage(reader.result as string);
       reader.readAsDataURL(file);
-      setFileStatusMessage(`Файл "${file.name}" выбран. Нажмите "Загрузить и использовать".`);
+      setFileStatus({ message: `Выбран: "${file.name}". Нажмите "Загрузить".`, type: 'info' });
     } else {
-      setSelectedFile(null);
-      setPreviewImage(avatarPathValue || profile?.avatarPath || null);
+      setPreviewImage(avatarPathValue || null);
     }
+    if (e.target) e.target.value = '';
   };
 
   const handleActualFileUpload = async () => {
     if (!selectedFile) {
-      setFileStatusMessage("Сначала выберите файл.");
+      setFileStatus({ message: "Пожалуйста, сначала выберите файл.", type: 'error' });
       return;
     }
-    setFileStatusMessage(`Загрузка файла "${selectedFile.name}"...`);
     setIsUploadingFile(true);
     setError(null);
+    setFileStatus({ message: `Загрузка файла "${selectedFile.name}"...`, type: 'info' });
     try {
-      const filePath = await FileService.uploadUserAvatar(selectedFile);
-      setAvatarPathValue(filePath);
-      setPreviewImage(filePath);
-      setFileStatusMessage(`Файл "${selectedFile.name}" успешно загружен. Теперь можно сохранить профиль.`);
+      const url = await FileService.uploadUserAvatar(selectedFile);
+      setAvatarPathValue(url);
+      setPreviewImage(url);
+      setFileStatus({ message: `Файл "${selectedFile.name}" успешно загружен.`, type: 'success' });
       setSelectedFile(null);
+      setIsAvatarMarkedForDeletion(false);
     } catch (uploadError: any) {
       console.error("Ошибка загрузки аватара:", uploadError);
-      setFileStatusMessage(`Ошибка: ${uploadError.message || "Не удалось загрузить аватар."}`);
+      const errorMsg = uploadError?.response?.data?.message || uploadError.message || "Неизвестная ошибка загрузки.";
+      setFileStatus({ message: `Ошибка: ${Array.isArray(errorMsg) ? errorMsg.join(', ') : errorMsg}`, type: 'error' });
+      setPreviewImage(initialAvatarRef.current || null);
     } finally {
       setIsUploadingFile(false);
     }
   };
 
-  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleDeleteCurrentAvatar = () => {
+    setError(null);
+    setFileStatus({ message: "Аватар будет удален после сохранения.", type: 'info' });
+    setAvatarPathValue('');
+    setPreviewImage(null);
+    setSelectedFile(null);
+    setIsAvatarMarkedForDeletion(true);
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError(null);
 
     if (isUploadingFile) {
-      setError("Дождитесь завершения загрузки файла аватара.");
+      setError("Пожалуйста, дождитесь завершения загрузки файла.");
       return;
     }
     if (!profile) {
-      setError("Ошибка: данные профиля не загружены.");
+      setError("Данные профиля не загружены.");
       return;
     }
 
-    const dataToSubmit: UserProfileUpdateDto = {};
+    const dto: UserProfileUpdateDto = {};
     let hasChanges = false;
-    const currentName = profile.name || '';
-    const currentAvatarPath = profile.avatarPath || '';
 
-    if (name !== currentName) {
-      dataToSubmit.name = name;
-      hasChanges = true;
-    }
-    if (avatarPathValue !== currentAvatarPath) {
-      dataToSubmit.avatar_path = avatarPathValue;
-      hasChanges = true;
-    }
-    if (password) {
-      if (password.length < 6) {
-        setError("Пароль не может быть меньше 6 символов!");
+    const trimmedName = name.trim();
+    if (trimmedName !== (profile.name || '').trim()) {
+      if (!trimmedName) {
+        setError("Имя не может быть пустым.");
         return;
       }
-      dataToSubmit.password = password;
+      dto.name = trimmedName;
+      hasChanges = true;
+    }
+
+    if (avatarPathValue !== (profile.avatar_path || '') || isAvatarMarkedForDeletion) {
+      dto.avatar_path = avatarPathValue;
+      hasChanges = true;
+    }
+
+    if (password) {
+      if (password.length < 6) {
+        setError("Новый пароль должен содержать не менее 6 символов.");
+        return;
+      }
+      dto.password = password;
       hasChanges = true;
     }
 
@@ -138,236 +217,298 @@ const EditProfileModal: FC<EditProfileModalProps> = ({
 
     setIsLoading(true);
     try {
-      const updatedUserDataResponse = await UserService.updateProfile(dataToSubmit);
+      const oldAvatarUrl = initialAvatarRef.current;
+      const newAvatarUrl = avatarPathValue;
 
-      if (updatedUserDataResponse?.data) {
-        const updated = updatedUserDataResponse.data as Partial<IFullUser>;
-        const old = queryClient.getQueryData<IFullUser>(PROFILE_QUERY_KEY);
+       if (oldAvatarUrl && oldAvatarUrl !== newAvatarUrl && oldAvatarUrl.startsWith('http')) {
+        try {
+            const parsedOldUrl = new URL(oldAvatarUrl);
+            if (parsedOldUrl.pathname.startsWith(AVATAR_BUCKET_PATH_SEGMENT)) {
+                console.log(`Попытка удаления старого аватара с MinIO: ${oldAvatarUrl}`);
+                await FileService.deleteUserAvatarByUrl(oldAvatarUrl);
+                console.log("Старый аватар успешно удалён с MinIO:", oldAvatarUrl);
+            }
+        } catch (urlParseError) {
+            console.warn("Не удалось распарсить URL старого аватара, пропуск удаления из MinIO:", oldAvatarUrl, urlParseError);
+        } 
+      }
 
-        if (old) {
-          // Мёржим старые вложенные поля (favorites, orders)
-          const merged: IFullUser = {
-            ...old,
-            ...updated,
-            favorites: old.favorites,
-            orders: old.orders,
-          };
-          queryClient.setQueryData(PROFILE_QUERY_KEY, merged);
-          onProfileUpdate?.(merged);
-        } else {
-          // Если кэша не было — перезапрашиваем полный профиль
-          await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+      const resp = await UserService.updateProfile(dto);
+      const updatedUserData = resp.data as Partial<IFullUser>;
+
+      queryClient.setQueryData(PROFILE_QUERY_KEY, (oldData: IFullUser | undefined) => {
+        if (oldData) {
+          return {
+             ...oldData,
+             ...updatedUserData,
+             avatar_path: newAvatarUrl
+            };
         }
+        const baseData = updatedUserData.id ? updatedUserData : {};
+        return { ...baseData, avatar_path: newAvatarUrl } as IFullUser;
+      });
 
-        onClose();
-      } else {
-        console.error("Ответ от UserService.updateProfile не содержит data.");
-        setError("Не удалось получить обновленные данные профиля от сервера.");
+      const finalUserData = queryClient.getQueryData<IFullUser>(PROFILE_QUERY_KEY);
+      if (finalUserData) {
+        onProfileUpdate?.(finalUserData);
       }
+
+      onClose();
+
     } catch (err: any) {
-      console.error("Ошибка при обновлении профиля:", err);
-      let errorMessage = "Произошла ошибка при обновлении профиля.";
-      if (err.response?.data?.message) {
-        errorMessage = Array.isArray(err.response.data.message)
-          ? err.response.data.message.join('; ')
-          : err.response.data.message;
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      setError(errorMessage);
+      console.error("Ошибка обновления профиля:", err);
+      const errorMsg = err.response?.data?.message || err.message || "Произошла ошибка при обновлении.";
+      setError(Array.isArray(errorMsg) ? errorMsg.join('; ') : errorMsg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const toggleShowPassword = () => setShowPassword(!showPassword);
-  const noChangesMade =
-    !password &&
-    name === (profile?.name || '') &&
-    avatarPathValue === (profile?.avatarPath || '');
+  const toggleShowPassword = () => setShowPassword(x => !x);
 
+  const isNameChanged = name.trim() !== (profile?.name || '').trim();
+  const isAvatarChanged = avatarPathValue !== (profile?.avatar_path || '') || (isAvatarMarkedForDeletion && profile?.avatar_path);
+  const isPasswordSet = Boolean(password);
+  const hasNoChangesToSave = !isNameChanged && !isAvatarChanged && !isPasswordSet;
+
+  const showDeleteAvatarButton = avatarPathValue && !selectedFile && !isAvatarMarkedForDeletion;
+
+
+  // --- Рендеринг JSX ---
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-      <div className="bg-while p-6 rounded-lg shadow-xl w-full max-w-lg relative dark:bg-gray-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm p-4">
+      <div
+        ref={modalContentRef}
+        className="bg-while dark:bg-gray-800 p-5 sm:p-6 rounded-lg shadow-xl w-full max-w-lg relative transform transition-all duration-300 ease-out scale-95 opacity-0 animate-modal-scale-in"
+        style={{ animationFillMode: 'forwards' }}
+      >
+        {/* Кнопка закрытия */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
           disabled={isLoading || isUploadingFile}
+          className="absolute top-3 right-3 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 transition-colors p-1 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+          aria-label="Закрыть"
         >
-          <FiX size={24} />
+          <FiX size={22} />
         </button>
-        <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800 dark:text-gray-100">
-          Редактирование профиля
+
+        {/* Заголовок */}
+        <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-center text-gray-800 dark:text-gray-100">
+          Редактировать профиль
         </h2>
 
+        {/* Блок ошибки */}
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
-            {error}
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 rounded-md flex items-center gap-2 text-sm">
+            <FiAlertCircle className="flex-shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleFormSubmit} className="space-y-4">
-          {/* Имя */}
+        {/* Форма */}
+        <form onSubmit={handleFormSubmit} className="space-y-5">
+          {/* Поле "Имя" */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="profileName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Имя
             </label>
             <input
+              id="profileName"
+              name="profileName"
               type="text"
-              id="name"
-              name="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm disabled:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:disabled:bg-gray-600"
-              placeholder="Ваше имя"
+              onChange={e => setName(e.target.value)}
               disabled={isLoading || isUploadingFile}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="Ваше имя"
+              autoComplete="off"
             />
           </div>
 
-          {/* Аватар */}
-          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-md">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          {/* Блок "Аватар" */}
+          <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-md space-y-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 -mb-2">
               Аватар
             </label>
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="shrink-0">
-                {previewImage ? (
+              {/* Превью */}
+              <div className="flex-shrink-0 w-20 h-20"> {/* Задаем явный размер контейнеру */}
+                {isValidImageSrc ? (
                   <Image
-                    src={previewImage}
+                    src={previewImage!}
                     alt="Превью аватара"
                     width={80}
                     height={80}
-                    className="rounded-full object-cover"
-                    onError={() => setPreviewImage(null)}
+                    // === ИЗМЕНЕНИЕ ЗДЕСЬ: Возвращаем обводку ===
+                    className="rounded-full w-full h-full object-cover border-2 border-gray-200 dark:border-gray-600"
+                    onError={() => {
+                        if (previewImage !== initialAvatarRef.current) {
+                            setPreviewImage(initialAvatarRef.current || null)
+                        } else {
+                            setPreviewImage(null);
+                        }
+                    }}
                   />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-gray-400 dark:text-gray-500">
-                    <FiUser size={36} />
+                  // Placeholder также с обводкой
+                  <div className="w-full h-full bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center border-2 border-gray-200 dark:border-gray-600">
+                    <FiUser size={36} className="text-gray-400 dark:text-gray-500" />
                   </div>
                 )}
               </div>
-              <div className="flex-grow w-full">
-                <label
-                  htmlFor="avatarFile"
-                  className={`w-full flex items-center justify-center cursor-pointer px-3 py-2 bg-while dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
-                    isLoading || isUploadingFile ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  <FiUploadCloud className="inline-block mr-2" />
-                  <span>{selectedFile ? selectedFile.name : 'Выбрать файл...'}</span>
+
+              {/* Опции загрузки/удаления файла */}
+              <div className="flex-grow w-full space-y-3 overflow-hidden">
+                 {/* Кнопка "Выбрать новый файл..." */}
+                 <label
+                  className={`flex w-full items-center justify-center gap-2 px-3 py-2 border text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${isLoading || isUploadingFile ? 'opacity-50 cursor-not-allowed' : ''} overflow-hidden`}
+                 >
+                  <FiUploadCloud size={16} className="flex-shrink-0" />
+                  <span className="text-sm truncate whilespace-nowrap"> {/* Исправлена опечатка whilespace -> whilespace */}
+                    {selectedFile?.name ? `Файл: ${selectedFile.name}` : 'Выбрать новый файл...'}
+                  </span>
                   <input
                     type="file"
-                    id="avatarFile"
-                    name="avatarFile"
                     accept="image/*"
-                    onChange={handleFileChange}
                     className="sr-only"
+                    onChange={handleFileChange}
                     disabled={isLoading || isUploadingFile}
+                    autoComplete="off"
                   />
-                </label>
+                 </label>
+
+                {/* Кнопка "Загрузить и использовать" */}
                 {selectedFile && (
                   <button
                     type="button"
                     onClick={handleActualFileUpload}
-                    className={`mt-2 w-full flex items-center justify-center px-3 py-2 bg-green-500 text-while rounded-md shadow-sm text-sm font-medium hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${
-                      isUploadingFile || isLoading ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    disabled={isUploadingFile || isLoading}
+                    disabled={isLoading || isUploadingFile}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-while rounded-md shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800" // text-while заменен на text-while
                   >
-                    {isUploadingFile ? (
-                      <><svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-while" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Загрузка...</>
-                    ) : (
-                      <><FiUploadCloud className="mr-2" />Загрузить и использовать</>
-                    )}
+                    {isUploadingFile
+                     ? <><svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-while" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l2.649-2.649z"></path></svg> Загрузка...</> // text-while заменен на text-while
+                     : <> <FiUploadCloud size={16} /> Загрузить и использовать</>
+                    }
                   </button>
+                )}
+
+                {/* Кнопка "Удалить аватар" */}
+                {showDeleteAvatarButton && (
+                   <button
+                    type="button"
+                    onClick={handleDeleteCurrentAvatar}
+                    disabled={isLoading || isUploadingFile}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-500 hover:bg-red-600 text-while rounded-md shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800" // text-while заменен на text-while
+                  >
+                    <FiTrash2 size={16} /> Удалить аватар
+                  </button>
+                )}
+
+                {/* Статус файла */}
+                {fileStatus.message && (
+                  <p className={`mt-1 text-xs flex items-center gap-1 ${
+                      fileStatus.type === 'error' ? 'text-red-600 dark:text-red-400' :
+                      fileStatus.type === 'success' ? 'text-green-600 dark:text-green-400' :
+                      'text-gray-600 dark:text-gray-400'
+                  }`}>
+                    {fileStatus.type === 'error' && <FiAlertCircle size={12} />}
+                    {fileStatus.type === 'success' && <FiCheckCircle size={12} />}
+                    {fileStatus.type === 'info' && <FiInfo size={12} />}
+                    <span>{fileStatus.message}</span>
+                  </p>
                 )}
               </div>
             </div>
-            {fileStatusMessage && (
-              <p className={`mt-2 text-xs ${fileStatusMessage.includes("Ошибка") ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}`}>
-                {fileStatusMessage}
-              </p>
-            )}
-            <div className="mt-3">
-              <label htmlFor="avatarPathInput" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Или укажите прямой URL/путь к аватару:
-              </label>
-              <input
-                type="text"
-                id="avatarPathInput"
-                name="avatar_path"
-                value={avatarPathValue}
-                onChange={(e) => {
-                  setAvatarPathValue(e.target.value);
-                  setPreviewImage(e.target.value);
-                  setSelectedFile(null);
-                  setFileStatusMessage(null);
-                }}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm disabled:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:disabled:bg-gray-600"
-                placeholder="/uploads/avatars/your_avatar.png или http://..."
-                disabled={isLoading || isUploadingFile}
-              />
-            </div>
           </div>
 
-          {/* Пароль */}
+          {/* Поле "Пароль" */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Новый пароль
+            <label htmlFor="profilePassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Новый пароль (если нужно изменить)
             </label>
-            <div className="relative mt-1">
+            <div className="relative">
               <input
+                id="profilePassword"
+                name="profilePassword"
                 type={showPassword ? 'text' : 'password'}
-                id="password"
-                name="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm disabled:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:disabled:bg-gray-600 pr-10"
-                placeholder="Не менее 6 символов. Оставьте пустым, если не хотите менять"
-                autoComplete="new-password"
+                onChange={e => {
+                  setPassword(e.target.value);
+                  if (error && password.length >= 5) setError(null);
+                }}
                 disabled={isLoading || isUploadingFile}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-gray-100 pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="Оставьте пустым, чтобы не менять"
+                autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={toggleShowPassword}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 disabled:opacity-50"
-                aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
                 disabled={isLoading || isUploadingFile}
+                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 focus:outline-none rounded-r-md disabled:opacity-50"
+                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
               >
-                {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
               </button>
             </div>
+            {password && password.length > 0 && password.length < 6 && (
+              <p className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                <FiInfo size={12} /> Пароль должен быть не менее 6 символов.
+              </p>
+            )}
           </div>
 
-          {/* Кнопки */}
-          <div className="flex justify-end space-x-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 dark:text-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
-              disabled={isLoading || isUploadingFile}
-            >
-              Отмена
-            </button>
-            <button
-              type="submit"
-              className="min-w-[150px] flex items-center justify-center px-4 py-2 text-sm font-medium text-while bg-primary rounded-md hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50 disabled:bg-primary-light"
-              disabled={isLoading || isUploadingFile || noChangesMade}
-            >
-              {isLoading ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-while" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                  Сохранение...
-                </>
-              ) : (
-                <>
-                  <FiSave className="mr-2 h-5 w-5" />Сохранить изменения
-                </>
-              )}
-            </button>
+          {/* Кнопки формы "Отмена" и "Сохранить" */}
+          <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isLoading || isUploadingFile}
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 rounded-md shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+              >
+                Отмена
+              </button>
+              <button
+                type="submit"
+                disabled={isLoading || isUploadingFile || hasNoChangesToSave}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-while rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm flex items-center gap-1.5" // text-while заменен на text-while
+              >
+                {isLoading
+                 ? <><svg className="animate-spin h-4 w-4 text-while" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l2.649-2.649z"></path></svg> Сохранение...</> // text-while заменен на text-while
+                 : <><FiSave size={16} /> Сохранить</>
+                }
+              </button>
           </div>
         </form>
       </div>
+
+       {/* Глобальные стили */}
+       <style jsx global>{`
+        @keyframes modal-scale-in {
+          from { transform: scale(0.95); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        .animate-modal-scale-in { animation: modal-scale-in 0.2s ease-out; }
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px while inset !important; /* Светлая тема */
+            box-shadow: 0 0 0 30px while inset !important; /* Светлая тема */
+             -webkit-text-fill-color: #1f2937 !important;
+        }
+        /* Темная тема для автозаполнения */
+        .dark input:-webkit-autofill,
+        .dark input:-webkit-autofill:hover,
+        .dark input:-webkit-autofill:focus,
+        .dark input:-webkit-autofill:active {
+             -webkit-box-shadow: 0 0 0 30px #374151 inset !important; /* Цвет фона темной темы */
+             box-shadow: 0 0 0 30px #374151 inset !important; /* Цвет фона темной темы */
+             -webkit-text-fill-color: #f3f4f6 !important; /* Цвет текста темной темы */
+        }
+        /* Исправление для опечатки в стилях кнопок */
+        .text-while { color: while; }
+      `}</style>
     </div>
   );
 };

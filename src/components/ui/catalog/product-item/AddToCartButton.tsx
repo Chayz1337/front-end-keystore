@@ -48,7 +48,7 @@ const AddToCartButton: FC<AddToCartButtonProps> = ({ games }) => {
     iconColorClass = 'text-primary hover:text-primary'; // Оранжевый, если в корзине
     titleText = "Удалить из корзины";
   } else if (isOutOfStock) {
-    iconColorClass = 'text-gray-400 cursor-not-allowed'; // Светло-серый, если нет в наличии
+    iconColorClass = 'text-gray-500 cursor-not-allowed'; // Светло-серый, если нет в наличии
     titleText = "Нет в наличии";
   }
 

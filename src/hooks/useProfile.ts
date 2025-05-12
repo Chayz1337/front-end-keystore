@@ -29,9 +29,7 @@ export const useProfile = (): UseProfileResult => {
       }
       return response.data;
     },
-    // Опциональные настройки React Query:
-    // staleTime: 5 * 60 * 1000, // Данные считаются "свежими" 5 минут
-    // refetchOnWindowFocus: true, // Перезапрашивать при фокусе на окне
+
   });
 
   return { profile: profileData, isLoading, isError /*, error, refetch */ };
