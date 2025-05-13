@@ -1,71 +1,94 @@
 // src/store/user/user.actions.ts
- // ПРОВЕРЬ ПУТЬ
-import { IAuthResponse, IEmailPassword} from './user.interface'; // ПРОВЕРЬ ПУТЬ
+import { IAuthResponse, IEmailPassword } from './user.interface';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { errorCatch } from '@/src/assets/styles/api/api.helper';
-import { removeFromStorage } from '@/src/assets/styles/services/auth/auth.helper';
+import { removeFromStorage, saveToStorage as saveAuthToStorage } from '@/src/assets/styles/services/auth/auth.helper';
 import { AuthService } from '@/src/assets/styles/services/auth/auth.service';
-
+import { reset as resetCart } from '../cart/cart.slice'; // Только resetCart
+// Убираем импорты TypeRootState, ICartItem, если они больше не нужны здесь
+// import { TypeRootState, AppDispatch } from '../store'; // Если не используем getState
 
 /* register */
-export const register = createAsyncThunk<IAuthResponse, IEmailPassword, { rejectValue: string }>(
+export const register = createAsyncThunk<
+    IAuthResponse,
+    IEmailPassword,
+    { rejectValue: string; dispatch: any } // Убрали getState, если не нужен
+>(
     'auth/register',
     async (data, thunkApi) => {
         try {
             const response = await AuthService.mainModule('register', data);
-            // Важно: AuthService.mainModule должен возвращать данные, совместимые с IAuthResponse,
-            // обычно это { user: IUser, accessToken: string }
+            saveAuthToStorage(response);
+            thunkApi.dispatch(resetCart()); // Очищаем корзину при регистрации нового пользователя
             return response;
         } catch (error: any) {
-            const errorMessage = errorCatch(error); // Используем errorCatch для извлечения сообщения
-            console.error('Ошибка в register thunk:', errorMessage, 'Полная ошибка:', error.response?.data || error);
+            const errorMessage = errorCatch(error);
             return thunkApi.rejectWithValue(errorMessage);
         }
     }
 );
 
 /* login */
-export const login = createAsyncThunk<IAuthResponse, IEmailPassword, { rejectValue: string }>(
+export const login = createAsyncThunk<
+    IAuthResponse,
+    IEmailPassword,
+    { rejectValue: string; dispatch: any } // Убрали getState, если не нужен
+>(
     'auth/login',
     async (data, thunkApi) => {
         try {
             const response = await AuthService.mainModule('login', data);
-            // Успешный ответ должен содержать user и accessToken, как в IAuthResponse
+            saveAuthToStorage(response);
+            // При логине корзина НЕ загружается из персонального хранилища,
+            // она будет такой, какой ее оставил redux-persist (или пустой, если persist выключен для cart).
+            // Если redux-persist сохраняет 'cart', то при логине отобразится корзина,
+            // которая была в localStorage под ключом redux-persist.
+            // Если вы хотите, чтобы при каждом логине корзина была чистой, раскомментируйте:
+            // thunkApi.dispatch(resetCart());
             return response;
         } catch (error: any) {
-            // Извлекаем сообщение об ошибке.
-            // errorCatch - твой хелпер. Убедись, что он возвращает строку.
-            // Или извлекай сообщение напрямую из error.response.data.message
             const errorMessage = errorCatch(error);
-            console.error('Ошибка в login thunk:', errorMessage, 'Полная ошибка:', error.response?.data || error);
             return thunkApi.rejectWithValue(errorMessage);
         }
     }
 );
 
 /* logout */
-export const logout = createAsyncThunk('auth/logout', async () => {
-    removeFromStorage();
-    // Здесь можно добавить другие действия при логауте, если нужно
-    // например, сброс состояния пользователя в сторе.
-});
+export const logout = createAsyncThunk<
+    void,
+    void,
+    { dispatch: any } // Убрали getState
+>(
+    'auth/logout',
+    async (_, thunkApi) => {
+        removeFromStorage(); // Удаляем токены и инфо о пользователе
+        thunkApi.dispatch(resetCart()); // Просто очищаем корзину в Redux
+        console.log('[Logout] Пользователь вышел, хранилище очищено, корзина Redux сброшена.');
+    }
+);
 
-/* checkAuth */
-export const checkAuth = createAsyncThunk<IAuthResponse, void, { rejectValue: string }>(
+/* checkAuth (восстановление сессии) */
+export const checkAuth = createAsyncThunk<
+    IAuthResponse,
+    void,
+    { rejectValue: string; dispatch: any } // Убрали getState, если не нужен
+>(
     'auth/check-auth',
     async (_, thunkApi) => {
         try {
-            // getNewTokens должен возвращать { data: IAuthResponse } или аналогично
             const response = await AuthService.getNewTokens();
-            return response.data; // Убедись, что структура соответствует IAuthResponse
+            saveAuthToStorage(response.data);
+            // При checkAuth корзина НЕ загружается из персонального хранилища.
+            // redux-persist сам восстановит корзину, которая была сохранена для текущей сессии.
+            // Если вы хотите всегда сбрасывать корзину при checkAuth (маловероятно), раскомментируйте:
+            // thunkApi.dispatch(resetCart());
+            return response.data;
         } catch (error: any) {
             const errorMessage = errorCatch(error);
-            console.error('Ошибка в checkAuth thunk:', errorMessage, 'Полная ошибка:', error.response?.data || error);
-            if (errorMessage.toLowerCase().includes('jwt expired') || errorMessage.toLowerCase().includes('unauthorized')) {
-                // При ошибке токена (например, истек) также вызываем logout,
-                // чтобы очистить хранилище и состояние.
-                // dispatch(logout()) здесь может быть избыточен, если checkAuth.rejected обработчик делает это
-                // thunkApi.dispatch(logout()); // Это правильно, если logout обрабатывает UI (например, редирект)
+            if (typeof errorMessage === 'string' && (errorMessage.toLowerCase().includes('jwt') || errorMessage.toLowerCase().includes('unauthorized'))) {
+                console.log('[CheckAuth] Ошибка токена, вызываем logout...');
+                // logout теперь просто очистит хранилище и корзину
+                await thunkApi.dispatch(logout());
             }
             return thunkApi.rejectWithValue(errorMessage);
         }

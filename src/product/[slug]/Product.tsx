@@ -45,7 +45,7 @@ const Product: FC<IProductPage> = ({ initialProduct, similarProducts, slug = '' 
             <span key={category.category_id}>
               <a
                 href={`/category/${category.slug}`}
-                className="text-aqua hover:text-red"
+                className="text-aqua hover:text-red-500"
               >
                 {category.category_name}
               </a>

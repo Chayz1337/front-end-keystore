@@ -77,7 +77,7 @@ const ProductItem: FC<{ games: IProduct; isSorting?: boolean }> = ({
           {games.game_categories.slice(0, 3).map(({ category }, i, arr) => (
             <span key={`${category.slug}-${i}`} className="inline-block">
               <Link href={`/category/${category.slug}`} passHref legacyBehavior>
-                <a className="text-aqua hover:text-red transition-colors">
+                <a className="text-aqua hover:text-red-500 transition-colors">
                   {category.category_name}
                 </a>
               </Link>

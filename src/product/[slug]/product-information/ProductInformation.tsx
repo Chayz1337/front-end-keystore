@@ -25,7 +25,7 @@ const ProductInformation: React.FC<IProductInformation> = ({ product }) => {
       {/* Платформа */}
       <div className="flex items-center text-sm text-gray-600 mb-2">
         <FaGamepad className="mr-2 text-primary" />
-        Платформа: PC
+        Платформа: PC, Steam
       </div>
 
       {/* Мгновенная доставка */}

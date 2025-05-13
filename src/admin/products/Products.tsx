@@ -1,9 +1,8 @@
 // src/pages/admin/products/Products.tsx
-import { useState } from 'react';
+import { useState, FC } from 'react'; // FC импортирован, но не был в импорте
 import AdminList from '@/src/components/ui/admin/admin-list/AdminList';
-import Heading from '@/src/components/ui/button/Heading';
+import Heading from '@/src/components/ui/button/Heading'; // Предполагаю, что это UI, а не button
 import Layout from '@/src/components/ui/layout/Layout';
-import { FC } from 'react';
 import { useAdminProducts } from './useAdminProducts';
 import Meta from '@/src/components/ui/Meta';
 import AddGameModal from '@/src/components/ui/modal/AddGameModal';
@@ -34,9 +33,7 @@ const Products: FC = () => {
   const handleEditGameClicked = (gameId: number) => {
     const loadAndEdit = async () => {
       try {
-        // Получаем либо IProduct, либо IProduct[]
         const response = await ProductService.getById(gameId);
-        // Поскольку getById теперь отдаёт сразу данные:
         const fullGameData: IProduct | undefined = Array.isArray(response)
           ? response[0]
           : response;
@@ -87,7 +84,6 @@ const Products: FC = () => {
   };
 
   const handleFormSubmitSuccess = () => {
-    // refetchAdminProducts всегда определён
     refetchAdminProducts();
   };
 
@@ -102,13 +98,27 @@ const Products: FC = () => {
         </Button>
       </div>
 
-      <AdminList
-        isLoading={isFetching}
-        listItems={data}
-        removeHandler={handleRemoveGame}
-        onAddKey={handleAddKey}
-        onEdit={handleEditGameClicked}
-      />
+      {/* Обертка для AdminList для управления скроллом */}
+      <div className="max-h-[calc(7*5rem+2rem)] overflow-y-auto rounded-md">
+        {/*
+          Примерный расчет max-h:
+          Допустим, каждый элемент списка ~4rem (64px) высотой.
+          7 элементов = 7 * 4rem = 28rem.
+          Можно добавить немного сверху/снизу для общего padding/margin внутри списка, если он есть,
+          или просто для визуального запаса, например `max-h-[30rem]` или `max-h-[500px]`.
+          `max-h-[calc(7*4rem+2rem)]` - это просто пример, если высота элемента около 4rem.
+          Подберите значение `max-h-[]` экспериментально!
+          Например: `max-h-96` (384px), `max-h-[500px]`, `max-h-[35rem]`
+          Добавил border и rounded-md для визуального обрамления списка, если нужно.
+        */}
+        <AdminList
+          isLoading={isFetching}
+          listItems={data}
+          removeHandler={handleRemoveGame}
+          onAddKey={handleAddKey}
+          onEdit={handleEditGameClicked}
+        />
+      </div>
 
       {gameModalOpen && (
         <AddGameModal
