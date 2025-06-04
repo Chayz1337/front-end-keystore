@@ -12,11 +12,13 @@ const Reviews: FC = () => {
     <Layout>
       <Meta title = 'Админ панель - Отзывы' />
       <Heading classname="mb-7">Отзывы</Heading>
+      <div className="max-h-[70vh] overflow-y-auto pr-2">
       <AdminList
         isLoading={isFetching}
         listItems={data}
         removeHandler={mutate}
       />
+      </div>
     </Layout>
   );
 };

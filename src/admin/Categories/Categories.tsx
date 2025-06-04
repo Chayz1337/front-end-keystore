@@ -34,14 +34,14 @@ const Categories = () => {
           Добавить категорию
         </Button>
       </div>
-
+<div className="max-h-[70vh] overflow-y-auto pr-2">
       <AdminList
         isLoading={isFetching}
         listItems={data}
         removeHandler={mutate}
         onEdit={handleEdit}
       />
-
+</div>
       <EditCategoryModal
         isOpen={editOpen}
         categoryId={selected?.id || null}

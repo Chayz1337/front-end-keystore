@@ -9,6 +9,14 @@ import { IOrder } from '@/src/types/order.interface';      // IOrder тепер�
 import { IUser } from '@/src/types/user.interface';        // IUser импортирован
 import { AxiosResponse } from 'axios';
 
+const orderStatusTranslations: Record<string, string> = {
+  'COMPLETED': 'Завершен',
+  'CANCELLED': 'Отменен',
+  // Добавьте другие статусы, если они появятся, например:
+  // 'PENDING': 'В ожидании',
+  // 'PROCESSING': 'В обработке',
+};
+
 export const useAdminOrders = () => {
   const { data = [], isFetching } = useQuery<
     AxiosResponse<IOrder[]>,
@@ -43,13 +51,16 @@ export const useAdminOrders = () => {
         //   console.log(`Order ID ${order.order_id} - User Object is MISSING or NULL`);
         // }
 
+        // Применяем перевод статуса: если перевод найден, используем его, иначе оставляем оригинальный статус
+        const displayStatus = orderStatusTranslations[order.status] || order.status;
+
         return {
           id: order.order_id,
           editUrl: getAdminUrl(`/orders/edit/${order.order_id}`),
           items: [
             `#${order.order_id}`,
             userEmailText, // <--- Твой ебаный email
-            order.status,
+            displayStatus, // <--- Теперь статус будет на русском!
             formatDate(order.created_at),
             convertPrice(order.total_amount) 
           ],

@@ -167,7 +167,7 @@ const Search: FC = () => {
           {isSuccess && !isLoading && currentSuggestions.length === 0 && debouncedSearchTerm.trim().length > 1 && (
             <li className="px-4 py-2 text-neutral-500 dark:text-neutral-400">Ничего не найдено</li>
           )}
-          {isSuccess && !isLoading && currentSuggestions.map((game) => (
+          {isSuccess && !isLoading && currentSuggestions.map((game) => (  
             <li
               key={game.slug}
               // ADDED hover:text-aqua here (or your specific aqua text color class)
