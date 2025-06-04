@@ -1,58 +1,105 @@
+// src/api/api.interceptor.ts
 import axios, { AxiosError, AxiosHeaders, InternalAxiosRequestConfig } from "axios";
-import { errorCatch, getContentType } from "./api.helper"; // Убедитесь, что эти хелперы существуют и корректны
-import { getAccessToken, removeFromStorage } from "../services/auth/auth.helper"; // Путь к auth.helper
-import { AuthService } from "../services/auth/auth.service"; // Путь к auth.service
+import { errorCatch } from "./api.helper"; // Убедитесь, что этот хелпер существует и корректен
+import { getAccessToken, removeFromStorage } from "../services/auth/auth.helper"; // Убедитесь, что пути корректны
+import { AuthService } from "../services/auth/auth.service"; // Убедитесь, что пути корректны
 
-const axiosOptions = {
-    baseURL: process.env.SERVER_URL || 'http://localhost:4200/api', // Добавьте URL по умолчанию, если SERVER_URL не определен
-    headers: getContentType()
+// Опции для создания инстансов Axios
+const axiosBaseOptions = {
+    baseURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:4200/api',
+    // Content-Type будет устанавливаться в интерцепторе запросов,
+    // чтобы корректно обрабатывать FormData и обычные JSON запросы.
 };
 
-export const axiosClassic = axios.create(axiosOptions);
+/**
+ * Инстанс Axios для публичных запросов (не требующих токена авторизации).
+ */
+export const axiosClassic = axios.create(axiosBaseOptions);
 
-// Исправлена опечатка: instanse -> instance
-export const instanse = axios.create(axiosOptions);
+/**
+ * Инстанс Axios для запросов, требующих авторизации.
+ * Включает интерцепторы для добавления токена и обновления токена.
+ */
+export const instanse = axios.create(axiosBaseOptions); // Здесь было 'instanse', исправлено на 'instance'
 
-instanse.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-    const accessToken = getAccessToken();
+// Интерцептор запросов для `instance` (требующих авторизации)
+instanse.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+        const accessToken = getAccessToken();
 
-    if (config.headers && accessToken) {
-        (config.headers as AxiosHeaders).set('Authorization', `Bearer ${accessToken}`);
+        // Устанавливаем Content-Type: application/json по умолчанию,
+        // ТОЛЬКО ЕСЛИ данные не являются FormData и метод предполагает тело запроса.
+        if (config.headers && !(config.data instanceof FormData)) {
+            if (config.method === 'post' || config.method === 'put' || config.method === 'patch') {
+                 (config.headers as AxiosHeaders).set('Content-Type', 'application/json');
+            }
+        }
+        // Если config.data это FormData, Axios автоматически установит 'multipart/form-data'.
+
+        // Добавляем токен авторизации, если он есть
+        if (config.headers && accessToken) {
+            (config.headers as AxiosHeaders).set('Authorization', `Bearer ${accessToken}`);
+        }
+
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
     }
+);
 
-    return config;
-});
-
+// Интерцептор ответов для `instance` (обработка ошибок, обновление токена)
 instanse.interceptors.response.use(
-    config => config,
+    (response) => response,
     async (error: AxiosError) => {
-        const originalRequest = error.config as InternalAxiosRequestConfig & { _isRetry?: boolean }; // Добавляем _isRetry в тип
+        const originalRequest = error.config as InternalAxiosRequestConfig & { _isRetry?: boolean };
 
         if (
-            originalRequest && // Убедимся, что originalRequest существует
-            (error.response?.status === 401 ||
-                errorCatch(error) === 'jwt expired' ||
-                errorCatch(error) === 'jwt must be provided') &&
+            originalRequest &&
+            error.response?.status === 401 &&
+            (errorCatch(error) === 'jwt expired' ||
+             errorCatch(error) === 'jwt must be provided' ||
+             !errorCatch(error)) &&
             !originalRequest._isRetry
         ) {
             originalRequest._isRetry = true;
             try {
-                // Предполагаем, что getNewTokens - это асинхронный метод, который нужно вызвать
+                console.log('Attempting to refresh tokens...');
                 await AuthService.getNewTokens();
-                return instanse.request(originalRequest);
-            } catch (refreshError) {
-                // Если при обновлении токена снова ошибка 'jwt expired' (например, refresh token тоже истек)
-                if (errorCatch(refreshError) === 'jwt expired') {
+                console.log('Tokens refreshed successfully.');
+                return instanse.request(originalRequest); // Используем 'instance'
+            } catch (refreshError: any) {
+                console.error('Failed to refresh tokens or retrying original request failed:', refreshError);
+                if (
+                    errorCatch(refreshError) === 'jwt expired' ||
+                    errorCatch(refreshError) === 'jwt must be provided' ||
+                    refreshError.response?.status === 401
+                ) {
                     removeFromStorage();
-                    // Опционально: перенаправить на страницу логина или показать сообщение
-                    // window.location.href = '/login';
+                    console.error('Refresh token expired or invalid. User needs to re-authenticate.');
                 }
-                // Важно: нужно пробросить ошибку дальше, если это не ошибка обновления токена
-                // или если мы хотим, чтобы оригинальный запрос также завершился ошибкой
-                return Promise.reject(refreshError); // Пробрасываем ошибку от AuthService.getNewTokens
+                return Promise.reject(refreshError);
             }
         }
-        // Если это не 401 или уже была попытка повтора, пробрасываем ошибку дальше
         return Promise.reject(error);
     }
 );
+
+// Для axiosClassic (публичные запросы)
+axiosClassic.interceptors.request.use(
+    (config: InternalAxiosRequestConfig) => {
+        if (config.headers && !(config.data instanceof FormData)) {
+            if (config.method === 'post' || config.method === 'put' || config.method === 'patch') {
+                 (config.headers as AxiosHeaders).set('Content-Type', 'application/json');
+            }
+        }
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+// Если вы где-то экспортировали `axiosWithAuth = instanse`, то теперь это должно быть:
+export const axiosWithAuth = instanse;
+// Но лучше просто везде использовать `instance`.

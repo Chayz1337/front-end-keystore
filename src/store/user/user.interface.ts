@@ -1,7 +1,12 @@
 // src/store/user/user.interface.ts
-import { IUser } from '@/src/types/user.interface'; // <--- Импортируем глобальный IUser
+import { IUser as GlobalIUser } from '@/src/types/user.interface'; // Импортируем с псевдонимом
 
-// export interface IUserState { ... } // Этот тип больше не нужен для state.user
+// Реэкспортируем его под именем IUser
+export type IUser = GlobalIUser; 
+// Или, если ты хочешь сохранить его как интерфейс, а не тип:
+// export interface IUser extends GlobalIUser {} 
+// (Но первый вариант с type IUser = GlobalIUser; проще и обычно работает)
+
 
 export interface ITokens {
     accessToken: string;
@@ -9,19 +14,16 @@ export interface ITokens {
 }
 
 export interface IInitialState {
-    user: IUser | null; // <--- Используем IUser
+    user: IUser | null; // Теперь это будет ссылаться на реэкспортированный IUser
     isLoading: boolean;
     error?: string | null;
-    // Если isAdmin и role не часть IUser, но нужны в стейте отдельно:
-    // isAdmin?: boolean;
-    // role?: string;
 }
 
 export interface IEmailPassword {
     email: string;
-    password?: string; // Сделал опциональным, как было раньше, на случай если это важно
+    password?: string; 
 }
 
 export interface IAuthResponse extends ITokens {
-    user: IUser; // Это уже правильно
+    user: IUser; // И это тоже
 }

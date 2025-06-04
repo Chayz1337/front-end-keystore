@@ -1,39 +1,53 @@
-// src/components/explorer/useFilters.ts (или ваш актуальный путь)
+// src/components/explorer/useFilters.ts
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { useActions } from "@/src/hooks/user.actions";
+import { useActions } from "@/src/hooks/user.actions"; // Убедитесь, что это правильный путь к useActions, который использует rootActions
 import { useTypedSelector } from "@/src/hooks/useTypedSelector";
 import { TypeProductDataFilters } from "@/src/assets/styles/services/product/product.types";
-
-// ===== ВОТ ЭТОТ ИМПОРТ НУЖНО ДОБАВИТЬ ИЛИ РАСКОММЕНТИРОВАТЬ =====
-import { initialState as filtersInitialState } from "@/src/store/filters/filters.slice"; // <-- УКАЖИТЕ ПРАВИЛЬНЫЙ ПУТЬ К ВАШЕМУ filtersSlice.ts
+import { initialState as filtersInitialState } from "@/src/store/filters/filters.slice";
 
 export const useFilters = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { replace } = useRouter();
 
-  const { updateQueryParam: dispatchUpdateQueryParam, resetFilterUpdate: dispatchResetFilterUpdate } = useActions();
+  // ===>>> ИСПРАВЛЕНИЕ ЗДЕСЬ <<<===
+  // Деструктурируем экшены с их ОРИГИНАЛЬНЫМИ именами из filters.slice
+  // (так как rootActions использует ...filtersSlice.actions)
+  const { 
+    updateQueryParam,    // Оригинальное имя из filters.slice
+    resetFilterUpdate,   // Оригинальное имя из filters.slice
+    // resetFilters,     // Если нужен, тоже деструктурируем
+  } = useActions();
+  // dispatchUpdateQueryParam и dispatchResetFilterUpdate больше не нужны как отдельные переменные,
+  // если вы просто используете updateQueryParam и resetFilterUpdate напрямую.
+  // Если хотите сохранить алиасы для ясности, можно сделать так:
+  // const { 
+  //   updateQueryParam: dispatchUpdateQueryParam,
+  //   resetFilterUpdate: dispatchResetFilterUpdate 
+  // } = useActions();
+  // Но тогда нужно быть уверенным, что в useActions() есть updateQueryParam и resetFilterUpdate
 
   const { queryParams, isFilterUpdated } = useTypedSelector(
     state => state.filters
   );
 
   useEffect(() => {
-    searchParams.forEach((value, key) => {
-      // Теперь filtersInitialState будет определен благодаря импорту выше
-      if (Object.prototype.hasOwnProperty.call(filtersInitialState.queryParams, key)) {
-        dispatchUpdateQueryParam({
-          key: key as keyof TypeProductDataFilters,
-          value: value,
-        });
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Проверяем, что updateQueryParam определен
+    if (updateQueryParam) { // Используем оригинальное имя
+      searchParams.forEach((value, key) => {
+        if (Object.prototype.hasOwnProperty.call(filtersInitialState.queryParams, key)) {
+          updateQueryParam({ // Используем оригинальное имя
+            key: key as keyof TypeProductDataFilters,
+            value: value,
+          });
+        }
+      });
+    }
+  }, [searchParams, updateQueryParam, filtersInitialState.queryParams]); // Добавили updateQueryParam в зависимости
 
-  const updateQueryParams = (
+  const updateQueryParamsHook = ( // Переименовал, чтобы не конфликтовать с деструктурированным экшеном
     key: keyof TypeProductDataFilters,
     value: string | number | undefined
   ) => {
@@ -43,19 +57,19 @@ export const useFilters = () => {
       newParams.set(key, String(value));
     } else {
       newParams.delete(key);
-      if (key === 'page' && newParams.get('page') === '') {
-        newParams.delete(key);
-      }
     }
     
     replace(pathname + `?${newParams.toString()}`);
-    dispatchUpdateQueryParam({ key, value });
+    // Проверяем, что updateQueryParam определен
+    if (updateQueryParam) { // Используем оригинальное имя
+        updateQueryParam({ key, value });
+    }
   };
 
   return {
     queryParams,
     isFilterUpdated,
-    updateQueryParams,
-    resetFilterUpdate: dispatchResetFilterUpdate,
+    updateQueryParams: updateQueryParamsHook, // Возвращаем нашу обертку
+    resetFilterUpdate, // Возвращаем напрямую экшен, если он не требует дополнительной логики в хуке
   };
 };

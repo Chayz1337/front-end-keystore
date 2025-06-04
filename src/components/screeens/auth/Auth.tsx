@@ -11,6 +11,16 @@ import Spinner from "@/src/components/ui/input/Spinner";
 import { validEmail } from "./valid-email";
 import { useAuthRedirect } from "./useAuthRedirect";
 import { IEmailPassword } from "@/src/store/user/user.interface";
+import { useRouter } from "next/router";
+
+// Импортируем иконки
+import { FcGoogle } from 'react-icons/fc'; // Иконка Google
+import { FaGithub } from 'react-icons/fa'; // Иконка GitHub
+
+// Конфигурация URL'ов для OAuth и восстановления пароля
+const GOOGLE_AUTH_URL = process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL || '/api/auth/google';
+const GITHUB_AUTH_URL = process.env.NEXT_PUBLIC_GITHUB_AUTH_URL || '/api/auth/github';
+const FORGOT_PASSWORD_PAGE_URL = '/forgot-password';
 
 const errorMap: Record<string, string> = {
   "Invalid password": "Неверный пароль 🔒 Пожалуйста, попробуйте ещё раз.",
@@ -21,6 +31,7 @@ const errorMap: Record<string, string> = {
 
 const Auth: FC = () => {
   useAuthRedirect();
+  const router = useRouter();
 
   const { isLoading, error } = useAuth();
   const { login, register: registerAction } = useActions();
@@ -36,16 +47,12 @@ const Auth: FC = () => {
   const onSubmit: SubmitHandler<IEmailPassword> = (data) => {
     if (type === "Вход") login(data);
     else registerAction(data);
-    // не сбрасываем форму сразу, чтобы пользователь видел ошибку, если она случится
   };
 
-  // при смене режима сбрасываем форму и ошибку
   useEffect(() => {
     reset();
-    // можно сбросить ошибку через экшен clearAuthError()
   }, [type, reset]);
 
-  // переводим backend-ошибку в приятный текст
   const friendlyError = error ? (errorMap[error] || error) : null;
 
   return (
@@ -105,6 +112,41 @@ const Auth: FC = () => {
                     ? "Нет аккаунта? Зарегистрироваться"
                     : "Есть аккаунт? Войти"}
                 </button>
+
+                {/* Кнопка "Забыли пароль?" только для формы входа */}
+                {type === "Вход" && (
+                  <button
+                    type="button"
+                    className="inline-block opacity-50 hover:opacity-75 mt-2 text-sm transition-opacity"
+                    onClick={() => router.push(FORGOT_PASSWORD_PAGE_URL)}
+                  >
+                    Забыли пароль? Восстановить
+                  </button>
+                )}
+
+                {/* Разделитель перед социальными входами с новым текстом */}
+                <div className="text-center my-4 opacity-70">Или войти через:</div>
+
+                {/* Блок для социальных кнопок (иконок) */}
+                <div className="flex justify-center gap-4 w-full">
+                  {/* Google Login как иконка */}
+                  <a
+                    href={GOOGLE_AUTH_URL}
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 text-gray-800 border border-gray-300 hover:bg-gray-200 transition-colors duration-200"
+                    aria-label="Войти через Google"
+                  >
+                    <FcGoogle size={28} /> {/* Размер иконки */}
+                  </a>
+
+                  {/* GitHub Login как иконка */}
+                  <a
+                    href={GITHUB_AUTH_URL}
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-gray-800 text-while border border-gray-700 hover:bg-gray-700 transition-colors duration-200"
+                    aria-label="Войти через GitHub"
+                  >
+                    <FaGithub size={28} /> {/* Размер иконки */}
+                  </a>
+                </div>
               </div>
             </>
           )}

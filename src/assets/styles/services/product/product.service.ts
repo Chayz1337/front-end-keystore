@@ -129,31 +129,31 @@ export const ProductService = {
    * Создает новый продукт (игру) через защищенный эндпоинт.
    * Примечание: URL /admin/${PRODUCTS} отличается от PRODUCTS.
    */
-  async create(data: TypeProductData): Promise<IProduct> {
-    console.log('ProductService.create: Отправка данных:', data);
-    const { data: created } = await instanse<IProduct>({
-      url: `/admin/${PRODUCTS}`, // Убедись, что PRODUCTS = 'games'
-      method: 'POST',
-      data,
-    });
-    console.log('ProductService.create: Получен ответ:', created);
-    return created;
+  async create(formData: FormData): Promise<IProduct> { // <--- ИЗМЕНЕНО: data -> formData, тип FormData
+    console.log('ProductService.create: Отправка FormData...');
+    const { data: createdProduct } = await instanse.post<IProduct>(
+      `/admin/${PRODUCTS}`,
+      formData, // <--- Передаем formData напрямую
+      // Axios сам установит Content-Type: multipart/form-data для FormData
+    );
+    console.log('ProductService.create: Получен ответ:', createdProduct);
+    return createdProduct;
   },
 
   /**
    * Обновляет существующий продукт (игру) через защищенный эндпоинт.
    * Примечание: URL /admin/${PRODUCTS}/${id} отличается от PRODUCTS.
    */
-  async update(id: string | number, data: TypeProductData): Promise<IProduct> {
-    console.log(`ProductService.update: Отправка данных для ID: ${id}:`, data);
-    const { data: updated } = await instanse<IProduct>({
-      url: `/admin/${PRODUCTS}/${id}`, // Убедись, что PRODUCTS = 'games'
-      method: 'PATCH', // или PUT, в зависимости от твоего API
-      data,
-    });
-    console.log(`ProductService.update: Получен ответ для ID: ${id}:`, updated);
-    return updated;
+  async update(id: string | number, formData: FormData): Promise<IProduct> { // <--- ИЗМЕНЕНО: data -> formData, тип FormData
+    console.log(`ProductService.update: Отправка FormData для ID: ${id}...`);
+    const { data: updatedProduct } = await instanse.patch<IProduct>( // или PUT
+      `/admin/${PRODUCTS}/${id}`,
+      formData, // <--- Передаем formData напрямую
+    );
+    console.log(`ProductService.update: Получен ответ для ID: ${id}:`, updatedProduct);
+    return updatedProduct;
   },
+
 
   /**
    * Удаляет продукт (игру) через защищенный эндпоинт.

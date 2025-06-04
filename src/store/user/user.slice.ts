@@ -1,6 +1,6 @@
 // src/store/user/user.slice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IInitialState } from './user.interface';
+import { IInitialState, IAuthResponse, IUser } from './user.interface'; // Убедись, что IAuthResponse и IUser импортированы
 import { register, login, logout, checkAuth } from './user.actions';
 import { getStoreLocal } from '@/src/utils/local-storage';
 
@@ -14,9 +14,16 @@ export const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    // экшен для ручной очистки ошибки
+    // Экшен для ручной очистки ошибки
     clearAuthError(state) {
       state.error = null;
+    },
+    // ===>>> ВОТ ЭТОТ РЕДЬЮСЕР НУЖНО ДОБАВИТЬ <<<===
+    setAuthStateFromOAuth: (state, action: PayloadAction<IAuthResponse>) => {
+      state.user = action.payload.user;
+      state.isLoading = false; 
+      state.error = null;
+      // Токены уже должны быть сохранены в cookies/localStorage хелпером saveToStorage
     },
   },
   extraReducers: builder => {
@@ -32,8 +39,7 @@ export const userSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
-        // payload при rejectWithValue — строка
-        state.error = action.payload || action.error.message || 'Ошибка регистрации';
+        state.error = (action.payload as string) || (action.error.message as string) || 'Ошибка регистрации';
       })
 
       // login
@@ -48,27 +54,33 @@ export const userSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
-        state.error = action.payload || action.error.message || 'Ошибка входа';
+        state.error = (action.payload as string) || (action.error.message as string) || 'Ошибка входа';
       })
 
       // logout
       .addCase(logout.fulfilled, state => {
         state.isLoading = false;
         state.user = null;
+        state.error = null; 
       })
 
       // checkAuth
       .addCase(checkAuth.pending, state => {
+        state.isLoading = true;
         state.error = null;
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.user = action.payload.user;
       })
       .addCase(checkAuth.rejected, (state, action) => {
-        state.error = action.payload || action.error.message || 'Ошибка проверки сессии';
+        state.isLoading = false;
+        state.user = null;
+        state.error = (action.payload as string) || (action.error.message as string) || 'Ошибка проверки сессии';
       });
   },
 });
 
-export const { clearAuthError } = userSlice.actions;
+// ===>>> И ДОБАВЬ ЕГО В ЭКСПОРТ <<<===
+export const { clearAuthError, setAuthStateFromOAuth } = userSlice.actions;
 export default userSlice.reducer;

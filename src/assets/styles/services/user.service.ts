@@ -1,37 +1,46 @@
-// Убедитесь, что путь к api.interceptor корректен
- // Примерный путь, исправьте на ваш
-import { IFullUser, IUser, UserProfileUpdateDto } from '@/src/types/user.interface';
+// src/assets/styles/services/user.service.ts
+import { IFullUser, IUser /*, UserProfileUpdateDto */ } from '@/src/types/user.interface'; // UserProfileUpdateDto больше не нужен для updateProfile
 import { instanse } from '../api/api.interceptor';
+import { AxiosResponse } from 'axios';
 
-const USERS = 'users';
+const USERS_ENDPOINT_PREFIX = 'users';
 
 export const UserService = {
-  /** Получение профиля пользователя (включает избранное) */
-  async getProfile() {
-    return instanse<IFullUser>({
-      url: `${USERS}/profile`,
+  async getProfile(): Promise<IFullUser> {
+    const response: AxiosResponse<IFullUser> = await instanse({
+      url: `${USERS_ENDPOINT_PREFIX}/profile`,
       method: 'GET',
     });
+    return response.data;
   },
 
-  /** Обновление профиля пользователя */
-  async updateProfile(data: UserProfileUpdateDto) {
-    // Здесь мы ОЖИДАЕМ, что API вернет IFullUser
-    // Если это не так, см. комментарии в EditProfileModal.tsx
-    return instanse<IFullUser>({
-      url: `${USERS}/profile/edit`,
-      method: 'PATCH',
-      data,
-    });
+  /**
+   * Обновление профиля пользователя с использованием FormData.
+   * FormData может содержать текстовые поля (name, password, deleteCurrentAvatar)
+   * и опционально файл аватара.
+   * Бэкенд-эндпоинт PATCH /users/profile/edit должен ожидать multipart/form-data.
+   */
+  async updateProfile(formData: FormData): Promise<IFullUser> { // <--- ИЗМЕНЕНИЕ: принимает FormData
+    const response: AxiosResponse<IFullUser> = await instanse.patch<IFullUser>( // Используем instanse.patch для удобства
+      `${USERS_ENDPOINT_PREFIX}/profile/edit`,
+      formData, // Отправляем FormData напрямую
+      {
+        headers: {
+          // 'Content-Type': 'multipart/form-data' 
+          // Axios обычно устанавливает этот заголовок автоматически для FormData,
+          // но если возникают проблемы, можно раскомментировать и указать явно.
+          // Однако, явное указание может иногда мешать Axios'у правильно установить boundary.
+        },
+      }
+    );
+    return response.data;
   },
 
-  /** Добавление/удаление игры из избранного */
-  async toggleFavorite(productId: string | number) {
-    // Предполагаем, что этот эндпоинт может возвращать IUser или только обновленный IFullUser.
-    // Если он возвращает IFullUser, измените на instanse<IFullUser>
-    return instanse<IUser>({ // Или IFullUser, если API возвращает полный профиль
-      url: `${USERS}/profile/favorites/${productId}`,
+  async toggleFavorite(productId: string | number): Promise<IUser> { // Или IFullUser
+    const response: AxiosResponse<IUser> = await instanse({
+      url: `${USERS_ENDPOINT_PREFIX}/profile/favorites/${productId}`,
       method: 'PATCH',
     });
+    return response.data;
   },
 };
